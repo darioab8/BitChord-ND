@@ -3385,7 +3385,9 @@ private fun BitChordApp(
                                 listState = homeListState,
                                 currentSong = player.song,
                                 isPlaying = player.isPlaying,
-                                title = stringResource(R.string.listen_now),
+                                // BitChord ND: no BitChord wordmark over the feed; Home
+                                // starts at the same height as the other tabs.
+                                title = null,
                                 festiveLogo = diwaliFestive,
                                 onFestiveLogoClick = { showDiwali = true },
                                 signedIn = signedIn,
