@@ -3423,7 +3423,8 @@ private fun BitChordApp(
                                 listenerName = account?.name,
                                 // Neither shelf is drawn without its callback.
                                 onTopPickClick = openTopPick.takeUnless { hideTopPicks },
-                                onMoodClick = playMood.takeUnless { hideHomeMoods },
+                                // BitChord ND: mood stations are YouTube searches.
+                                onMoodClick = playMood.takeUnless { hideHomeMoods || !NdFeatures.YOUTUBE },
                                 onMoodsShowAll = { navigator.push(AppRoute.Moods) },
                                 // Nothing on Home is seen while the greeting covers it.
                                 artworkMotion = artworkMotion && !showDiwali,

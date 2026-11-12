@@ -1,5 +1,7 @@
 package com.music.bitchord.ui.onboarding
 
+import androidx.compose.material.icons.rounded.Dns
+import androidx.compose.material.icons.Icons
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -71,7 +73,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.music.bitchord.R
 import com.music.bitchord.sharedui.resources.Res
-import com.music.bitchord.sharedui.resources.ic_google_g
 import com.music.bitchord.sharedui.resources.ic_logo
 import org.jetbrains.compose.resources.painterResource
 import com.music.bitchord.ui.icons.BitChordIcons
@@ -283,9 +284,11 @@ private fun ColumnScope.ConnectPage(
         onClick = onSignIn,
         primary = true,
         leading = {
-            Image(
-                painter = painterResource(Res.drawable.ic_google_g),
+            // BitChord ND: a server, not Google.
+            Icon(
+                imageVector = Icons.Rounded.Dns,
                 contentDescription = null,
+                tint = Color.Black,
                 modifier = Modifier.size(20.dp),
             )
         },

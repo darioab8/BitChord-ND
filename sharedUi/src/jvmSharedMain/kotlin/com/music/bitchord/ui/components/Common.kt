@@ -1,5 +1,6 @@
 package com.music.bitchord.ui.components
 
+import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.ui.layout.ContentScale
 import com.music.bitchord.ui.LocalPullToRefreshEnabled
 import com.music.bitchord.ui.AppUiHost
@@ -898,9 +899,11 @@ fun SignInBanner(
                     .padding(start = 16.dp, end = 20.dp, top = 10.dp, bottom = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Image(
-                    painter = painterResource(Res.drawable.ic_google_g),
+                // BitChord ND: a server, not Google.
+                Icon(
+                    imageVector = Icons.Rounded.Dns,
                     contentDescription = null,
+                    tint = Color.Black,
                     modifier = Modifier.size(18.dp),
                 )
                 Spacer(Modifier.width(8.dp))
