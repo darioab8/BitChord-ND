@@ -1335,5 +1335,5 @@
     <!-- BitChord ND -->
     <string name="nd_search_source_server">Server</string>
     <string name="nd_sources_subtitle">WebDAV and SMB libraries</string>
-    <string name="nd_companion_test_failed" translatable="false">Couldn't reach the companion: %1$s</string>
+    <string name="nd_companion_test_failed" translatable="false">Couldn\'t reach the companion: %1$s</string>
 </resources>
