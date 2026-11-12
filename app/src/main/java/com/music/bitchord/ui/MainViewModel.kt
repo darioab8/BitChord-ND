@@ -1,6 +1,8 @@
 package com.music.bitchord.ui
 
 import com.music.bitchord.data.Catalog
+import com.music.bitchord.auth.SubsonicSession
+import com.music.bitchord.data.subsonic.SubsonicIds
 import com.music.bitchord.data.SearchPage
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -2654,6 +2656,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     ?: BrowseType.PLAYLIST
             browseId.startsWith(LocalGroups.PREFIX) -> LocalGroups.typeOf(browseId) ?: fallback
             browseId.startsWith(OfflinePlaylists.PREFIX) -> BrowseType.PLAYLIST
+            // BitChord ND: Subsonic pages.
+            SubsonicIds.albumId(browseId) != null -> BrowseType.ALBUM
+            SubsonicIds.artistId(browseId) != null -> BrowseType.ARTIST
+            SubsonicIds.playlistId(browseId) != null -> BrowseType.PLAYLIST
+            SubsonicIds.isSubsonic(browseId) -> BrowseType.PLAYLIST
             browseId.startsWith("UC") -> BrowseType.ARTIST
             browseId.startsWith("MPREb") || browseId.startsWith("VLOLAK") || browseId.startsWith("OLAK") -> BrowseType.ALBUM
             browseId.startsWith("VL") || browseId.startsWith("PL") -> BrowseType.PLAYLIST
@@ -3581,7 +3588,30 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * BitChord ND: sign in to a Subsonic/Navidrome server.
+     *
+     * @param onResult null on success, otherwise why it failed, in words
+     *   fit to show under the form.
+     */
+    fun signInSubsonic(url: String, username: String, password: String, onResult: (String?) -> Unit) {
+        viewModelScope.launch {
+            val result = SubsonicSession.signIn(getApplication(), url, username, password)
+            result.onSuccess {
+                clearListenerState()
+                _signedIn.value = true
+                loadHome()
+                loadLibrary()
+                loadAccount()
+                loadPlaylists()
+            }
+            onResult(result.exceptionOrNull()?.message)
+        }
+    }
+
     fun signOut() {
+        // BitChord ND: leaving the Subsonic server is the whole sign-out.
+        SubsonicSession.signOut(getApplication())
         // In a multi-account install, sign out removes only the current Google
         // session and restores another one. A legacy single-account install
         // retains the familiar full sign-out behaviour.

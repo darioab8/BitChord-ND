@@ -129,6 +129,7 @@ import com.music.bitchord.auth.DiscordLoginScreen
 import com.music.bitchord.auth.SpotifyLoginScreen
 import com.music.bitchord.auth.WebSessionMode
 import com.music.bitchord.auth.YtMusicLoginScreen
+import com.music.bitchord.auth.SubsonicLoginScreen
 import com.music.bitchord.data.AppUpdateChecker
 import com.music.bitchord.data.LocalMediaRepository
 import com.music.bitchord.data.listentogether.JamInviteLink
@@ -5324,91 +5325,105 @@ private fun BitChordApp(
         // ---- Google sign-in (full screen WebView) ----
         webSession?.let { mode ->
             BackHandler { webSession = null }
-            // Raised by "Use this channel", read by the browser as "take the
-            // session from the page as it now stands". A counter rather than a
-            // flag so a second tap, after a failed first one, is still a new
-            // request rather than a value that was already true.
-            var captureRequest by remember(mode) { mutableIntStateOf(0) }
-            var captureFailed by remember(mode) { mutableStateOf(false) }
-            var pageReady by remember(mode) { mutableStateOf(false) }
-            var confirmingProfile by remember(mode) { mutableStateOf(false) }
-            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                Column(Modifier.fillMaxSize()) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .statusBarsPadding()
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        IconButton(onClick = { webSession = null }) {
-                            Icon(
-                                Icons.Rounded.Close,
-                                contentDescription = stringResource(R.string.close),
-                                tint = MaterialTheme.colorScheme.onBackground,
-                            )
-                        }
-                        Column(Modifier.weight(1f)) {
-                            Text(
-                                text = when (mode) {
-                                    WebSessionMode.SIGN_IN -> stringResource(R.string.sign_in_youtube_music)
-                                    WebSessionMode.SWITCH_CHANNEL -> stringResource(R.string.choose_profile)
-                                },
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onBackground,
-                            )
-                            if (pageReady) {
+            // BitChord ND: signing in means connecting to a Subsonic server;
+            // the YouTube sign-in page is only kept for its channel switcher.
+            if (mode == WebSessionMode.SIGN_IN) {
+                SubsonicLoginScreen(
+                    onClose = { webSession = null },
+                    onSignIn = { url, user, password, done -> viewModel.signInSubsonic(url, user, password, done) },
+                    onSignedIn = {
+                        webSession = null
+                        navigator.clear()
+                        selectedTab = TAB_LIBRARY
+                    },
+                )
+            } else {
+                // Raised by "Use this channel", read by the browser as "take the
+                // session from the page as it now stands". A counter rather than a
+                // flag so a second tap, after a failed first one, is still a new
+                // request rather than a value that was already true.
+                var captureRequest by remember(mode) { mutableIntStateOf(0) }
+                var captureFailed by remember(mode) { mutableStateOf(false) }
+                var pageReady by remember(mode) { mutableStateOf(false) }
+                var confirmingProfile by remember(mode) { mutableStateOf(false) }
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    Column(Modifier.fillMaxSize()) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .statusBarsPadding()
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            IconButton(onClick = { webSession = null }) {
+                                Icon(
+                                    Icons.Rounded.Close,
+                                    contentDescription = stringResource(R.string.close),
+                                    tint = MaterialTheme.colorScheme.onBackground,
+                                )
+                            }
+                            Column(Modifier.weight(1f)) {
                                 Text(
-                                    text = if (captureFailed) {
-                                         stringResource(R.string.profile_unavailable)
-                                     } else {
-                                         stringResource(R.string.switch_profile_hint)
+                                    text = when (mode) {
+                                        WebSessionMode.SIGN_IN -> stringResource(R.string.sign_in_youtube_music)
+                                        WebSessionMode.SWITCH_CHANNEL -> stringResource(R.string.choose_profile)
                                     },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 2,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onBackground,
                                 )
-                            }
-                        }
-                        if (pageReady) {
-                            TextButton(onClick = {
-                                captureFailed = false
-                                confirmingProfile = true
-                                captureRequest++
-                            }, enabled = !confirmingProfile) {
-                                Text(
-                                    if (confirmingProfile) stringResource(R.string.checking)
-                                    else stringResource(R.string.use_this_profile),
-                                )
-                            }
-                        }
-                    }
-                    YtMusicLoginScreen(
-                        mode = mode,
-                        initialCookie = if (mode == WebSessionMode.SWITCH_CHANNEL) {
-                            googleAccounts.firstOrNull { it.accountId == activeAccountId }?.cookie
-                        } else null,
-                        captureRequest = captureRequest,
-                        onPageReady = { pageReady = it },
-                        onCaptureUnavailable = {
-                            confirmingProfile = false
-                            captureFailed = true
-                        },
-                        onCaptured = { session ->
-                            viewModel.onWebSession(session, mode) { accepted ->
-                                confirmingProfile = false
-                                if (accepted) {
-                                    webSession = null
-                                    if (mode == WebSessionMode.SIGN_IN) {
-                                        navigator.clear()
-                                        selectedTab = TAB_LIBRARY
-                                    }
-                                } else {
-                                    captureFailed = true
+                                if (pageReady) {
+                                    Text(
+                                        text = if (captureFailed) {
+                                             stringResource(R.string.profile_unavailable)
+                                         } else {
+                                             stringResource(R.string.switch_profile_hint)
+                                        },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 2,
+                                    )
                                 }
                             }
-                        },
-                    )
+                            if (pageReady) {
+                                TextButton(onClick = {
+                                    captureFailed = false
+                                    confirmingProfile = true
+                                    captureRequest++
+                                }, enabled = !confirmingProfile) {
+                                    Text(
+                                        if (confirmingProfile) stringResource(R.string.checking)
+                                        else stringResource(R.string.use_this_profile),
+                                    )
+                                }
+                            }
+                        }
+                        YtMusicLoginScreen(
+                            mode = mode,
+                            initialCookie = if (mode == WebSessionMode.SWITCH_CHANNEL) {
+                                googleAccounts.firstOrNull { it.accountId == activeAccountId }?.cookie
+                            } else null,
+                            captureRequest = captureRequest,
+                            onPageReady = { pageReady = it },
+                            onCaptureUnavailable = {
+                                confirmingProfile = false
+                                captureFailed = true
+                            },
+                            onCaptured = { session ->
+                                viewModel.onWebSession(session, mode) { accepted ->
+                                    confirmingProfile = false
+                                    if (accepted) {
+                                        webSession = null
+                                        if (mode == WebSessionMode.SIGN_IN) {
+                                            navigator.clear()
+                                            selectedTab = TAB_LIBRARY
+                                        }
+                                    } else {
+                                        captureFailed = true
+                                    }
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }

@@ -1,5 +1,6 @@
 package com.music.bitchord.playback
 
+import com.music.bitchord.data.subsonic.SubsonicIds
 import android.content.ComponentName
 import android.net.Uri
 import android.os.Bundle
@@ -674,6 +675,10 @@ fun Song.toMediaItem(): MediaItem {
         ?: Downloads.verifiedSavedUri(videoId)
     val uriString = offlineUri ?: when {
         videoId.startsWith("content://") || videoId.startsWith("file://") -> videoId
+        // BitChord ND: a Subsonic song is resolved to its server's stream URL
+        // only when the player opens it — see PlaybackService's resolver.
+        SubsonicIds.isSubsonic(videoId) ->
+            "bitchord://${AudioCache.SUBSONIC_AUTHORITY}?id=${Uri.encode(SubsonicIds.songId(videoId).orEmpty())}${matchQuery()}"
         // Title, artist and runtime ride along in the URI because they are what
         // a cross-source match is made on, and the resolver runs on ExoPlayer's
         // loader thread with nothing but a DataSpec in hand — see

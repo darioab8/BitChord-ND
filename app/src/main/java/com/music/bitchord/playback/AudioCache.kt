@@ -24,6 +24,7 @@ import androidx.media3.datasource.cache.SimpleCache
 import java.io.IOException
 import com.music.bitchord.data.innertube.StreamResolver
 import com.music.bitchord.data.model.Song
+import com.music.bitchord.data.subsonic.SubsonicIds
 import com.music.bitchord.data.settings.AppSettings
 import com.music.bitchord.data.sources.DeviceCodecs
 import com.music.bitchord.data.sources.SourceKind
@@ -433,9 +434,31 @@ object AudioCache {
     const val WATCH_READ_PARAM = "watch_read"
 
     private val keyFactory = CacheKeyFactory { spec ->
-        val key = phoneKey(spec)
+        val key = subsonicKey(spec) ?: phoneKey(spec)
         if (spec.uri.getQueryParameter(WATCH_READ_PARAM) != null) "$key#watch" else key
     }
+
+    /**
+     * BitChord ND: a Subsonic song's entry, per bitrate.
+     *
+     * The bitrate is decided here, when the entry is chosen, and read back off
+     * [DataSpec.key] by the stream resolver — so the bytes written under a key
+     * always come from one rendition, even if the network (and so the quality
+     * ceiling) changes between two reads of the same track.
+     */
+    private fun subsonicKey(spec: androidx.media3.datasource.DataSpec): String? {
+        if (spec.uri.authority != SUBSONIC_AUTHORITY) return null
+        val id = spec.uri.getQueryParameter("id") ?: return null
+        return SubsonicIds.song(id) + "#" + subsonicRenditionTag()
+    }
+
+    /** "orig" for the untouched file, else the kbps the server should transcode to. */
+    fun subsonicRenditionTag(): String = when (val r = SourceResolver.requestForNow()) {
+        is com.music.bitchord.data.sources.StreamRequest.Capped -> "${r.maxKbps}"
+        else -> "orig"
+    }
+
+    const val SUBSONIC_AUTHORITY = "subsonic"
 
     private fun phoneKey(spec: androidx.media3.datasource.DataSpec): String =
         spec.uri.getQueryParameter("v")
@@ -1380,7 +1403,9 @@ object AudioCache {
         // read-ahead for those is a separate job, and their servers are
         // typically a good deal closer than googlevideo anyway.
         //
-        val videoIds = mediaIds.filter { SourceRegistry.parseTrackKey(it) == null }
+        // BitChord ND: Subsonic songs stream straight from the server; this
+        // read-ahead speaks YouTube ids only.
+        val videoIds = mediaIds.filter { SourceRegistry.parseTrackKey(it) == null && !SubsonicIds.isSubsonic(it) }
             // A track already on disk needs no reading ahead, and read-ahead
             // speaks only to googlevideo: warming one would spend mobile data
             // fetching a second copy of a file the listener deliberately saved,
@@ -1498,7 +1523,9 @@ object AudioCache {
         val id = upcoming.mediaId
         // A source-backed row resolves through its own source when opened, and
         // a downloaded or reverted track never reads this entry at all.
-        if (SourceRegistry.parseTrackKey(id) != null || id in Downloads.saved.value || OriginalVersion.isPinned(id)) {
+        if (SourceRegistry.parseTrackKey(id) != null || id in Downloads.saved.value || OriginalVersion.isPinned(id) ||
+            SubsonicIds.isSubsonic(id)
+        ) {
             directJob = null
             return
         }

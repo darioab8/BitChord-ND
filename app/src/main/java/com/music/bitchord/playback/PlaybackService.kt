@@ -1,5 +1,7 @@
 package com.music.bitchord.playback
 
+import com.music.bitchord.data.subsonic.SubsonicIds
+import com.music.bitchord.auth.SubsonicSession
 import com.music.bitchord.data.Catalog
 import android.app.PendingIntent
 import android.content.Context
@@ -1404,6 +1406,19 @@ class PlaybackService : MediaLibraryService() {
             // usually *not* the one playing, which is exactly why the lines
             // have to say. See [TrackLog.about].
             val about = TrackLog.about(mediaIdIn(dataSpec.uri))
+            // BitChord ND: a Subsonic song is the server's own stream, at the
+            // bitrate its cache entry was opened for (see AudioCache.subsonicKey).
+            if (dataSpec.uri.authority == AudioCache.SUBSONIC_AUTHORITY) {
+                val id = dataSpec.uri.getQueryParameter("id")
+                    ?: throw java.io.IOException("Subsonic stream without an id")
+                val client = SubsonicSession.client
+                    ?: throw java.io.IOException("Not signed in to a Subsonic server")
+                val tag = dataSpec.key?.substringAfterLast('#', "")?.ifEmpty { null }
+                    ?: AudioCache.subsonicRenditionTag()
+                val url = client.streamUrl(id, maxBitRateKbps = tag.toIntOrNull())
+                NerdStats.recordSource(SubsonicIds.song(id), "Navidrome")
+                return@Resolver dataSpec.buildUpon().setUri(Uri.parse(url)).build()
+            }
             // A source-backed track is resolved by whichever source can serve
             // it, which is not necessarily the one it was queued from — see
             // [SourceResolver.resolve]. Handled ahead of the YouTube path

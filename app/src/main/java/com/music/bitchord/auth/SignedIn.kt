@@ -18,6 +18,8 @@ object SignedIn {
 
     fun state(context: Context): MutableStateFlow<Boolean> =
         state ?: synchronized(this) {
-            state ?: MutableStateFlow(AuthStore(context.applicationContext).isSignedIn).also { state = it }
+            // BitChord ND: signed in means signed in to a Subsonic server.
+            state ?: MutableStateFlow(SubsonicStore.get(context.applicationContext).credentials.value != null)
+                .also { state = it }
         }
 }

@@ -103,6 +103,9 @@ class BitChordApplication : Application(), SingletonImageLoader.Factory, Configu
         // PlaybackService shares this process, so seeding the cookie here means
         // stream resolution is authenticated from the first play onwards.
         authStore = AuthStore(this)
+        // BitChord ND: the Subsonic server is the catalogue. Before anything
+        // below can ask it for a page.
+        com.music.bitchord.auth.SubsonicSession.init(this)
         // Opened off the main thread, alongside everything below: none of these
         // reads a setting or the session, and between them they are the slowest
         // opens at startup — SourceRegistry's encrypted store most of all.
