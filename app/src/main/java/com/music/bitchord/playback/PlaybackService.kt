@@ -680,6 +680,10 @@ class PlaybackService : MediaLibraryService() {
     private var consecutiveErrorSkips = 0
 
     private var scrobbleManager: ScrobbleManager? = null
+    /** BitChord ND: plays reported to the Subsonic server, whatever Last.fm is set to. */
+    private val navidromeScrobbler: ScrobbleManager by lazy {
+        ScrobbleManager(scope, sink = com.music.bitchord.data.scrobbling.NavidromeScrobbleSink)
+    }
     private var listenBrainzSong: Song? = null
 
     private var listenBrainzStartMs: Long = 0L
@@ -905,6 +909,7 @@ class PlaybackService : MediaLibraryService() {
             val song = exoPlayer.currentMediaItem?.toSong()
             val durationMs = exoPlayer.duration.takeIf { it > 0 }
             scrobbleManager?.onPlayerStateChanged(isPlaying, song, durationMs)
+            navidromeScrobbler.onPlayerStateChanged(isPlaying, song, durationMs)
 
             // The listening record has to be told a pause happened, not merely
             // stop being told about play: its sampler measures the gap between
@@ -3780,6 +3785,7 @@ class PlaybackService : MediaLibraryService() {
 
         // Scrobbling: stop old song, start new song
         scrobbleManager?.onSongStop()
+        navidromeScrobbler.onSongStop()
         // And the local record, which needs the transition even when the track
         // id doesn't change: repeat-one plays the same song again, and without
         // this the second play through is a continuation of the first and is
@@ -3789,6 +3795,7 @@ class PlaybackService : MediaLibraryService() {
         val durationMs = exoPlayer.duration.takeIf { it > 0 }
         if (exoPlayer.isPlaying) {
             scrobbleManager?.onSongStart(newSong, durationMs)
+            navidromeScrobbler.onSongStart(newSong, durationMs)
         }
 
         // ListenBrainz: submit finished for old song, playing_now for new song.
@@ -7895,6 +7902,7 @@ class PlaybackService : MediaLibraryService() {
         }
         scrobbleManager?.destroy()
         scrobbleManager = null
+        navidromeScrobbler.destroy()
         // Last chance to get the current track's minutes onto disk: the scope is
         // cancelled a few lines down and the sampler goes with it.
         ListeningRecorder.onStopped()

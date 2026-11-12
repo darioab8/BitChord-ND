@@ -10,11 +10,40 @@ import kotlinx.coroutines.launch
 import kotlin.math.min
 import kotlin.math.roundToLong
 
+/**
+ * Where a [ScrobbleManager] reports to. BitChord ND: Last.fm upstream, and
+ * also the Subsonic server — see [NavidromeScrobbleSink].
+ */
+interface ScrobbleSink {
+    suspend fun scrobble(song: Song, artist: String, durationSeconds: Int, startedAtSeconds: Long): Result<Unit>
+    suspend fun nowPlaying(song: Song, artist: String, durationSeconds: Int?): Result<Unit>
+}
+
+object LastFmScrobbleSink : ScrobbleSink {
+    override suspend fun scrobble(song: Song, artist: String, durationSeconds: Int, startedAtSeconds: Long) =
+        LastFM.scrobble(
+            artist = artist,
+            track = song.title,
+            duration = durationSeconds,
+            timestamp = startedAtSeconds,
+            album = song.albumName,
+        ).map { }
+
+    override suspend fun nowPlaying(song: Song, artist: String, durationSeconds: Int?) =
+        LastFM.updateNowPlaying(
+            artist = artist,
+            track = song.title,
+            album = song.albumName,
+            duration = durationSeconds,
+        ).map { }
+}
+
 class ScrobbleManager(
     private val scope: CoroutineScope,
     var minSongDuration: Int = 30,
     var scrobbleDelayPercent: Float = 0.5f,
     var scrobbleDelaySeconds: Int = 180,
+    private val sink: ScrobbleSink = LastFmScrobbleSink,
 ) {
     private var scrobbleJob: Job? = null
     private var scrobbleRemainingMillis: Long = 0L
@@ -116,15 +145,11 @@ class ScrobbleManager(
 
     private fun scrobbleSong(song: Song, durationSeconds: Int) {
         val scrobbleArtist = song.artist.forScrobble()
+        val startedAt = songStartedAt
         scope.launch {
-            LastFM
-                .scrobble(
-                    artist = scrobbleArtist,
-                    track = song.title,
-                    duration = durationSeconds,
-                    timestamp = songStartedAt,
-                    album = song.albumName,
-                ).onSuccess {
+            sink
+                .scrobble(song, scrobbleArtist, durationSeconds, startedAt)
+                .onSuccess {
                     Log.d(TAG, "Scrobbled: ${song.title} by ${song.artist}")
                 }.onFailure { throwable ->
                     if (throwable is CancellationException) throw throwable
@@ -136,13 +161,9 @@ class ScrobbleManager(
     private fun updateNowPlaying(song: Song) {
         val scrobbleArtist = song.artist.forScrobble()
         scope.launch {
-            LastFM
-                .updateNowPlaying(
-                    artist = scrobbleArtist,
-                    track = song.title,
-                    album = song.albumName,
-                    duration = song.durationText?.let { parseDurationSeconds(it) },
-                ).onSuccess {
+            sink
+                .nowPlaying(song, scrobbleArtist, song.durationText?.let { parseDurationSeconds(it) })
+                .onSuccess {
                     Log.d(TAG, "Updated now playing: ${song.title}")
                 }.onFailure { throwable ->
                     if (throwable is CancellationException) throw throwable
