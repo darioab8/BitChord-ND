@@ -2,6 +2,8 @@ package com.music.bitchord.auth
 
 import android.content.Context
 import com.music.bitchord.data.Catalog
+import com.music.bitchord.data.CompositeCatalog
+import com.music.bitchord.data.NdFeatures
 import com.music.bitchord.data.subsonic.SubsonicClient
 import com.music.bitchord.data.subsonic.SubsonicCredentials
 import com.music.bitchord.data.subsonic.SubsonicException
@@ -29,7 +31,12 @@ object SubsonicSession {
     /** Called once from Application.onCreate, before anything asks the catalogue. */
     fun init(context: Context) {
         client = SubsonicStore.get(context).credentials.value?.let(::buildClient)
-        Catalog.current = SubsonicRepository { client }
+        // The server for everything that is the user's, YouTube Music for
+        // search results past the server's and whatever is opened from them.
+        Catalog.current = CompositeCatalog(
+            server = SubsonicRepository { client },
+            youtubeInSearch = { NdFeatures.YOUTUBE_IN_SEARCH },
+        )
     }
 
     /**

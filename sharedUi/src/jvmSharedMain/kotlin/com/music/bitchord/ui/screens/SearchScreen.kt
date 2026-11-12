@@ -1,5 +1,6 @@
 package com.music.bitchord.ui.screens
 
+import com.music.bitchord.data.subsonic.SubsonicIds
 import com.music.bitchord.ui.components.trackArtSize
 import androidx.compose.ui.layout.ContentScale
 import com.music.bitchord.data.model.toSong
@@ -414,17 +415,46 @@ fun SearchScreen(
 
 private data class SearchSection(val title: String?, val rows: List<SearchResult>)
 
-/** The unfiltered page is useful only when its mixed result types are readable at a glance. */
+/**
+ * The unfiltered page is useful only when its mixed result types are readable at a glance.
+ *
+ * BitChord ND: results come from two places — the user's server, then YouTube
+ * Music (see CompositeCatalog) — and which is which matters, since only the
+ * server's are theirs. The server's sections come first under the usual
+ * titles; YouTube's follow with the source in the title. A filtered tab is one
+ * list, the server's rows first, with one heading where YouTube's begin.
+ */
 private fun searchSections(rows: List<SearchResult>, filter: SearchFilter): List<SearchSection> {
-    if (filter != SearchFilter.ALL) return listOf(SearchSection(null, rows))
+    val (own, youtube) = rows.partition(::isServerResult)
+    if (filter != SearchFilter.ALL) {
+        return listOf(
+            SearchSection(null, own),
+            SearchSection(if (own.isEmpty()) YOUTUBE_ONLY_HEADING else YOUTUBE_HEADING, youtube),
+        ).filter { it.rows.isNotEmpty() }
+    }
+    return typedSections(own, suffix = null) + typedSections(youtube, suffix = YOUTUBE_SUFFIX)
+}
+
+private fun typedSections(rows: List<SearchResult>, suffix: String?): List<SearchSection> {
+    fun title(base: String) = if (suffix == null) base else "$base $suffix"
     return listOf(
-        SearchSection("Songs", rows.filterIsInstance<SearchResult.Track>()),
-        SearchSection("Artists", rows.filterIsInstance<SearchResult.Browse>().filter { it.item.type == BrowseType.ARTIST }),
-        SearchSection("Albums", rows.filterIsInstance<SearchResult.Browse>().filter { it.item.type == BrowseType.ALBUM }),
-        SearchSection("Playlists", rows.filterIsInstance<SearchResult.Browse>().filter { it.item.type == BrowseType.PLAYLIST }),
-        SearchSection("More", rows.filterIsInstance<SearchResult.Browse>().filter { it.item.type == BrowseType.OTHER }),
+        SearchSection(title("Songs"), rows.filterIsInstance<SearchResult.Track>()),
+        SearchSection(title("Artists"), rows.filterIsInstance<SearchResult.Browse>().filter { it.item.type == BrowseType.ARTIST }),
+        SearchSection(title("Albums"), rows.filterIsInstance<SearchResult.Browse>().filter { it.item.type == BrowseType.ALBUM }),
+        SearchSection(title("Playlists"), rows.filterIsInstance<SearchResult.Browse>().filter { it.item.type == BrowseType.PLAYLIST }),
+        SearchSection(title("More"), rows.filterIsInstance<SearchResult.Browse>().filter { it.item.type == BrowseType.OTHER }),
     ).filter { it.rows.isNotEmpty() }
 }
+
+private fun isServerResult(row: SearchResult): Boolean = when (row) {
+    is SearchResult.TopTrack -> SubsonicIds.isSubsonic(row.song.videoId)
+    is SearchResult.Track -> SubsonicIds.isSubsonic(row.song.videoId)
+    is SearchResult.Browse -> SubsonicIds.isSubsonic(row.item.browseId)
+}
+
+private const val YOUTUBE_SUFFIX = "on YouTube Music"
+private const val YOUTUBE_HEADING = "On YouTube Music"
+private const val YOUTUBE_ONLY_HEADING = "Not on your server · on YouTube Music"
 
 /**
  * The Library source's page: the Local Music folder's tracks that match, as

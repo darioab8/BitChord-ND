@@ -18,4 +18,11 @@ package com.music.bitchord.data
  */
 object NdFeatures {
     const val YOUTUBE = false
+
+    /**
+     * Search adds YouTube Music's results after the server's, and they play.
+     * Independent of [YOUTUBE]: the rest of YouTube's UI stays hidden.
+     * See [CompositeCatalog].
+     */
+    const val YOUTUBE_IN_SEARCH = true
 }
