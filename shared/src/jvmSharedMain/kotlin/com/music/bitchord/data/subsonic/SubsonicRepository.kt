@@ -337,7 +337,7 @@ class SubsonicRepository(private val client: () -> SubsonicClient?) : CatalogRep
         SubsonicIds.albumId(browseId)?.let { id ->
             val (album, songs) = c.album(id)
             val subtitle = listOfNotNull(
-                album.releaseTypes.firstOrNull() ?: "Album",
+                releaseKind(album),
                 album.artist.ifBlank { null },
                 album.year?.toString(),
             ).joinToString(" • ")
@@ -605,6 +605,22 @@ class SubsonicRepository(private val client: () -> SubsonicClient?) : CatalogRep
                 }
                 s.bitRate != null && s.bitRate > 0 -> "$codec ${s.bitRate}"
                 else -> codec
+            }
+        }
+
+        /**
+         * "Album", "Single" or "EP" — the only kinds the page header reads as a
+         * kind. The OpenSubsonic `releaseTypes` come straight from the files'
+         * release-type tags, which are free text ("album", "a", "Album;Live"…);
+         * anything else would be shown as if it were an artist.
+         */
+        fun releaseKind(album: SubsonicAlbum): String {
+            val types = album.releaseTypes.flatMap { it.split(';', '/', ',') }
+                .map { it.trim().lowercase(Locale.ROOT) }
+            return when {
+                "single" in types -> "Single"
+                "ep" in types -> "EP"
+                else -> "Album"
             }
         }
 

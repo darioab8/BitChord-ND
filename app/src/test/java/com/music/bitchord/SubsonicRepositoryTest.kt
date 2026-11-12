@@ -97,6 +97,18 @@ class SubsonicRepositoryTest {
     }
 
     @Test
+    fun `free-text release types never reach the credit line`() = runTest {
+        routes["getAlbum"] = ok(
+            """"album":{"id":"al2","name":"The New Abnormal","artist":"The Strokes","year":2020,
+            "releaseTypes":["a"],"song":[{"id":"s1","title":"Selfless","artist":"The Strokes"}]}""",
+        )
+        val page = repo.browseSongs(SubsonicIds.album("al2")).getOrThrow()
+        assertEquals("Album • The Strokes • 2020", page.header?.subtitle)
+        assertEquals("Single", SubsonicRepository.releaseKind(com.music.bitchord.data.subsonic.SubsonicAlbum("x", "x", "x", releaseTypes = listOf("single"))))
+        assertEquals("EP", SubsonicRepository.releaseKind(com.music.bitchord.data.subsonic.SubsonicAlbum("x", "x", "x", releaseTypes = listOf("Album;EP"))))
+    }
+
+    @Test
     fun `playlist rows get index entry ids`() = runTest {
         routes["getPlaylist"] = ok(
             """"playlist":{"id":"p1","name":"Mix","owner":"dario","songCount":2,
