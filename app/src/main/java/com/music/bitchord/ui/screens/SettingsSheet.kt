@@ -1,5 +1,6 @@
 package com.music.bitchord.ui.screens
 
+import com.music.bitchord.companion.ServerDownloads
 import com.music.bitchord.data.NdFeatures
 import com.music.bitchord.ui.icons.SfIcons
 import com.music.bitchord.wear.WatchInstaller
@@ -200,6 +201,8 @@ fun SettingsScreen(
     onLyricsSources: () -> Unit,
     onTranslationLanguage: () -> Unit,
     onSources: () -> Unit,
+    /** BitChord ND: Settings → Download to server (the companion service). */
+    onServerDownloads: () -> Unit,
     onListenTogether: () -> Unit,
     onWearOs: () -> Unit,
     onSpotifyCanvasAuth: () -> Unit,
@@ -517,6 +520,18 @@ fun SettingsScreen(
                         title = sourceTitle,
                         subtitle = sourceSubtitle,
                         onClick = onSources,
+                    )
+                }
+                // BitChord ND: YouTube albums into the library via the companion.
+                val serverDownloadsTitle = "Download to server"
+                row(serverDownloadsTitle, "companion", "beets", "yt-dlp", "navidrome", "youtube") {
+                    val companion by ServerDownloads.config.collectAsStateWithLifecycle()
+                    SettingsRow(
+                        icon = SfIcons.Storage,
+                        title = serverDownloadsTitle,
+                        subtitle = "YouTube albums into your library",
+                        value = if (companion == null) "Off" else null,
+                        onClick = onServerDownloads,
                     )
                 }
                 // One line on purpose: it qualifies the row above rather than

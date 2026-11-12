@@ -19,6 +19,8 @@ sealed interface AppRoute {
     data object Settings : AppRoute
     data object AccountScrobbling : AppRoute
     data object Sources : AppRoute
+    /** BitChord ND: Settings → Download to server. */
+    data object ServerDownloads : AppRoute
     data object ListenTogether : AppRoute
     data object WearOs : AppRoute
     data object Equalizer : AppRoute

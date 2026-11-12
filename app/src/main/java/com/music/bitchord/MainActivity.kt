@@ -131,6 +131,9 @@ import com.music.bitchord.auth.WebSessionMode
 import com.music.bitchord.auth.YtMusicLoginScreen
 import com.music.bitchord.auth.SubsonicLoginScreen
 import com.music.bitchord.data.NdFeatures
+import com.music.bitchord.companion.ServerDownloads
+import com.music.bitchord.data.companion.CompanionConfig
+import com.music.bitchord.ui.screens.ServerDownloadsScreen
 import com.music.bitchord.data.subsonic.SubsonicIds
 import com.music.bitchord.data.AppUpdateChecker
 import com.music.bitchord.data.LocalMediaRepository
@@ -295,6 +298,7 @@ import com.music.bitchord.ui.components.AppLanguageDialog
 import com.music.bitchord.ui.components.TranslationLanguageDialog
 import com.music.bitchord.ui.components.LyricsSourcesDialog
 import com.music.bitchord.ui.components.ServerEditorHost
+import com.music.bitchord.ui.components.TextValueAlert
 import com.music.bitchord.ui.components.UpdateAvailableDialog
 import com.music.bitchord.ui.components.WebDavConflictAlert
 import com.music.bitchord.ui.components.FieldConfig
@@ -672,6 +676,9 @@ private fun BitChordApp(
     var showLastfmLogin by remember { mutableStateOf(false) }
     var showWebDavEditor by remember { mutableStateOf(false) }
     var showSmbEditor by remember { mutableStateOf(false) }
+    // BitChord ND: Download to server's editors.
+    var showCompanionEditor by remember { mutableStateOf(false) }
+    var showCompanionFolder by remember { mutableStateOf(false) }
     // Discord Rich Presence: its own page under Account & integrations (a
     // route), its own full-screen sign-in, and one slot for whichever of its
     // alerts is open. The alerts live out here rather than on the page because
@@ -3072,6 +3079,12 @@ private fun BitChordApp(
                                 onEditSmb = { showSmbEditor = true },
                                 onConfirmJioSaavn = { confirmJioSaavn = true },
                             )
+                        } else if (pageRoute == AppRoute.ServerDownloads) {
+                            ServerDownloadsScreen(
+                                contentPadding = listPadding,
+                                onEditCompanion = { showCompanionEditor = true },
+                                onEditFolder = { showCompanionFolder = true },
+                            )
                         } else if (pageRoute == AppRoute.Downloads) {
                             DownloadManagerPage(
                                 onCleared = { navigator.pop() },
@@ -3136,6 +3149,7 @@ private fun BitChordApp(
                                 onLyricsSources = { showLyricsSources = true },
                                 onTranslationLanguage = { showTranslationLanguage = true },
                                 onSources = { navigator.push(AppRoute.Sources) },
+                                onServerDownloads = { navigator.push(AppRoute.ServerDownloads) },
                                 onListenTogether = { navigator.push(AppRoute.ListenTogether) },
                                 onWearOs = { navigator.push(AppRoute.WearOs) },
                                 onSpotifyCanvasAuth = { showSpotifyCanvasAuth = true },
@@ -3808,6 +3822,7 @@ private fun BitChordApp(
                         AppRoute.Moods -> stringResource(R.string.find_your_mood)
                         AppRoute.AccountScrobbling -> stringResource(R.string.account_scrobbling)
                         AppRoute.Sources -> stringResource(R.string.sources)
+                        AppRoute.ServerDownloads -> "Download to server"
                         AppRoute.ListenTogether -> stringResource(R.string.listen_together)
                         AppRoute.WearOs -> stringResource(R.string.wear_os_page_title)
                         AppRoute.Equalizer -> stringResource(R.string.equalizer)
@@ -5164,6 +5179,16 @@ private fun BitChordApp(
                             },
                     )
                 }.takeIf { downloadable },
+                // BitChord ND: a YouTube album into the Navidrome library.
+                onDownloadToServer = act { songs ->
+                    ServerDownloads.download(
+                        browseId = target.browseId.orEmpty(),
+                        title = target.title,
+                        subtitle = target.subtitle,
+                        thumbnailUrl = target.thumbnailUrl,
+                        songs = songs,
+                    )
+                }.takeIf { ServerDownloads.canDownload(target.browseId, target.type == BrowseType.ALBUM) },
                 // The same link a share off YouTube Music's own overflow
                 // gives — built from the browse id rather than fetched,
                 // since nothing about it depends on the tracks or the
@@ -5691,6 +5716,62 @@ private fun BitChordApp(
                     showWebDavEditor = false
                 },
                 onDismiss = { showWebDavEditor = false },
+            )
+        }
+
+        if (showCompanionEditor) {
+            BackHandler { showCompanionEditor = false }
+            val current = ServerDownloads.config.value
+            ServerEditorHost(
+                hazeState = hazeState,
+                title = "Download to server",
+                description = "The companion running next to Navidrome: its address " +
+                    "(like 192.168.1.10:8765) and the COMPANION_TOKEN you gave it.",
+                fields = listOf(
+                    FieldConfig(
+                        initial = current?.baseUrl.orEmpty(),
+                        placeholder = "http://server:8765",
+                        keyboardType = KeyboardType.Uri,
+                    ),
+                    FieldConfig(
+                        initial = current?.token.orEmpty(),
+                        placeholder = "Token",
+                        keyboardType = KeyboardType.Password,
+                        isPassword = true,
+                    ),
+                ),
+                canSubmit = { it[0].isNotBlank() && it[1].isNotBlank() },
+                testFailedRes = R.string.nd_companion_test_failed,
+                onTest = { (url, token) ->
+                    ServerDownloads.test(CompanionConfig(CompanionConfig.normalizeUrl(url), token.trim())).map { }
+                },
+                onSave = { (url, token) ->
+                    ServerDownloads.save(
+                        CompanionConfig(CompanionConfig.normalizeUrl(url), token.trim(), current?.folder.orEmpty()),
+                    )
+                    showCompanionEditor = false
+                },
+                onDismiss = { showCompanionEditor = false },
+            )
+        }
+
+        if (showCompanionFolder) {
+            BackHandler { showCompanionFolder = false }
+            val current = ServerDownloads.config.value
+            var folder by remember { mutableStateOf(current?.folder.orEmpty()) }
+            TextValueAlert(
+                hazeState = hazeState,
+                title = "Folder in your library",
+                message = "Where downloaded albums go, inside your music folder, as " +
+                    "Folder/Artist/Album. Leave empty for the companion's default.",
+                placeholder = "YouTube",
+                value = folder,
+                onValueChange = { folder = it },
+                onSave = {
+                    current?.let { ServerDownloads.save(it.copy(folder = folder.trim().trim('/'))) }
+                    showCompanionFolder = false
+                },
+                onDismiss = { showCompanionFolder = false },
             )
         }
 

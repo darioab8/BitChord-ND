@@ -113,6 +113,11 @@ fun BrowseActionsMenu(
     onOpen: (() -> Unit)? = null,
     onDownloadAll: (() -> Unit)? = null,
     /**
+     * BitChord ND: sends a YouTube Music album to the companion, which puts it
+     * in the Navidrome library. Null for anything else, or with no companion set up.
+     */
+    onDownloadToServer: (() -> Unit)? = null,
+    /**
      * Shares the release's own YouTube Music link — the album/playlist
      * counterpart to a track's own Share tile in [SongActionsMenu]. Null for
      * anything with no such link to share: an artist card, or a page built
@@ -224,6 +229,9 @@ fun BrowseActionsMenu(
                     },
                     onClick = download,
                 )
+            }
+            onDownloadToServer?.let {
+                ActionRow(SfIcons.Storage, "Download to server", onClick = it)
             }
             onOpen?.let {
                 ActionRow(
