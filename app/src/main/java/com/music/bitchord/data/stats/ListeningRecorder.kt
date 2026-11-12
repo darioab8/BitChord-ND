@@ -1,6 +1,6 @@
 package com.music.bitchord.data.stats
 
-import com.music.bitchord.data.YtMusicRepository
+import com.music.bitchord.data.Catalog
 import com.music.bitchord.data.model.Song
 import com.music.bitchord.data.model.durationMillis
 import kotlinx.coroutines.CoroutineScope
@@ -157,7 +157,7 @@ object ListeningRecorder {
         if (song.localUri != null || song.videoId.length != YOUTUBE_ID_LENGTH) return song
         if (asked.add(song.videoId)) {
             scope.launch {
-                YtMusicRepository.trackLinks(song.videoId).getOrNull()?.let {
+                Catalog.current.trackLinks(song.videoId).getOrNull()?.let {
                     extras[song.videoId] = it
                 }
             }

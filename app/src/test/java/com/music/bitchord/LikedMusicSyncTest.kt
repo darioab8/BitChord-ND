@@ -2,7 +2,7 @@ package com.music.bitchord
 
 import com.music.bitchord.data.LikeState
 import com.music.bitchord.data.YtMusicRepository
-import com.music.bitchord.data.YtMusicRepository.SongPage
+import com.music.bitchord.data.SongPage
 import com.music.bitchord.data.innertube.InnertubeParser
 import com.music.bitchord.data.model.LikeStatus
 import com.music.bitchord.data.model.Song

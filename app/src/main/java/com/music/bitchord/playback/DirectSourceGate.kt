@@ -1,8 +1,8 @@
 package com.music.bitchord.playback
 
+import com.music.bitchord.data.Catalog
 import com.music.bitchord.data.NerdStats
 import com.music.bitchord.data.TrackLog
-import com.music.bitchord.data.YtMusicRepository
 import com.music.bitchord.data.listentogether.ListenTogether
 import com.music.bitchord.data.settings.AppSettings
 import com.music.bitchord.data.sources.SourceResolver
@@ -239,7 +239,7 @@ object DirectSourceGate {
     private suspend fun youTubeLength(videoId: String): Int? {
         knownLength(videoId)?.let { return it }
         val seconds = withTimeoutOrNull(LENGTH_TIMEOUT_MS) {
-            YtMusicRepository.trackLinks(videoId).getOrNull()
+            Catalog.current.trackLinks(videoId).getOrNull()
                 ?.durationText
                 ?.let(TrackMatcher::secondsOf)
         }

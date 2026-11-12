@@ -1,11 +1,11 @@
 package com.music.bitchord.data.stats
 
+import com.music.bitchord.data.Catalog
 import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.music.bitchord.BuildConfig
 import com.music.bitchord.data.Http
-import com.music.bitchord.data.YtMusicRepository
 import com.music.bitchord.data.model.SearchFilter
 import com.music.bitchord.data.model.SearchResult
 import com.music.bitchord.data.settings.AppSettings
@@ -209,7 +209,7 @@ object ArtistFacts {
      * release, and the same one a person would make.
      */
     private suspend fun fetchCard(name: String) {
-        val hit = YtMusicRepository.search(name, SearchFilter.ARTISTS).getOrNull()
+        val hit = Catalog.current.search(name, SearchFilter.ARTISTS).getOrNull()
             ?.filterIsInstance<SearchResult.Browse>()
             ?.firstOrNull()
             ?.item

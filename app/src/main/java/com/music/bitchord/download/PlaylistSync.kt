@@ -1,5 +1,7 @@
 package com.music.bitchord.download
 
+import com.music.bitchord.data.Catalog
+import com.music.bitchord.data.SongPage
 import android.Manifest
 import android.app.Application
 import android.app.Notification
@@ -174,8 +176,8 @@ object PlaylistSync {
                 val record = Downloads.collections.value[id] ?: return@forEach
                 val browseId = syncableBrowseId(record) ?: return@forEach
                 val listing = readWholePlaylist(
-                    first = { YtMusicRepository.browseSongs(browseId) },
-                    more = { YtMusicRepository.moreSongs(it) },
+                    first = { Catalog.current.browseSongs(browseId) },
+                    more = { Catalog.current.moreSongs(it) },
                 )
                 if (!listing.complete) whole = false
                 update(context, record, listing, approved)
@@ -256,8 +258,8 @@ object PlaylistSync {
      * to round a playlist out are never taken for part of it.
      */
     internal suspend fun readWholePlaylist(
-        first: suspend () -> Result<YtMusicRepository.SongPage>,
-        more: suspend (String) -> Result<YtMusicRepository.SongPage>,
+        first: suspend () -> Result<SongPage>,
+        more: suspend (String) -> Result<SongPage>,
     ): Listing {
         val opening = first().getOrNull() ?: return Listing(emptyList(), complete = false)
         val cover = opening.header?.thumbnailUrl

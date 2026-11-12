@@ -23,6 +23,7 @@
 
 package com.music.bitchord.playback.smart
 
+import com.music.bitchord.data.Catalog
 import android.content.Context
 import android.media.MediaDataSource
 import android.net.Uri
@@ -32,7 +33,6 @@ import android.os.Process
 import android.os.SystemClock
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
-import com.music.bitchord.data.YtMusicRepository
 import com.music.bitchord.data.listentogether.ListenTogether
 import com.music.bitchord.data.model.SearchFilter
 import com.music.bitchord.data.model.SearchResult
@@ -912,7 +912,7 @@ class TrackAnalyzer(private val context: Context, private val cache: AudioCache)
     private suspend fun findYouTubeMatch(target: TrackMatcher.Target): com.music.bitchord.data.model.Song? {
         if (target.title.isBlank()) return null
         for (query in TrackMatcher.queries(target)) {
-            val candidates = YtMusicRepository.search(query, SearchFilter.SONGS)
+            val candidates = Catalog.current.search(query, SearchFilter.SONGS)
                 .getOrNull()
                 ?.filterIsInstance<SearchResult.Track>()
                 ?.map { it.song }

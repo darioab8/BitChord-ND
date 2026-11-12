@@ -1,6 +1,6 @@
 package com.music.bitchord
 
-import com.music.bitchord.data.YtMusicRepository.SongPage
+import com.music.bitchord.data.SongPage
 import com.music.bitchord.data.model.Song
 import com.music.bitchord.download.Downloads
 import com.music.bitchord.download.PlaylistSync

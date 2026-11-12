@@ -1,5 +1,6 @@
 package com.music.bitchord.ui.tv.dialogs
 
+import com.music.bitchord.data.Catalog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,7 +45,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import com.music.bitchord.data.LikeState
-import com.music.bitchord.data.YtMusicRepository
 import com.music.bitchord.data.model.BrowseType
 import com.music.bitchord.data.model.LikeStatus
 import com.music.bitchord.data.model.PlaylistPrivacy
@@ -259,7 +259,7 @@ private enum class SongSheet { Actions, Playlist, Sleep, Equalizer }
  * playing and only the rest of the queue is replaced.
  */
 private suspend fun MediaController.startStation(song: Song) {
-    val related = YtMusicRepository.radio(song.videoId).getOrNull()
+    val related = Catalog.current.radio(song.videoId).getOrNull()
         ?.filterNot { it.videoId == song.videoId }
         ?: return
     beginRadioQueue()

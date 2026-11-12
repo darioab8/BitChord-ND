@@ -1,5 +1,6 @@
 package com.music.bitchord
 
+import com.music.bitchord.data.Catalog
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -1404,7 +1405,7 @@ private fun BitChordApp(
         if (pauseWhileResolving) c.pause()
         try {
             TrackLog.d("Player", "audio switch requested for '${song.title}'", song.videoId)
-            val audio = runCatching { YtMusicRepository.resolveAudio(song) }.getOrNull()
+            val audio = runCatching { Catalog.current.resolveAudio(song) }.getOrNull()
             val stillCurrent = c.currentMediaItemIndex == index &&
                 c.currentMediaItem?.mediaId == song.videoId
 
@@ -1437,7 +1438,7 @@ private fun BitChordApp(
             )
             if (!holdUntilAligned ||
                 VersionAudioAligner.getCachedOffsetMs(song.videoId, target.videoId) != null ||
-                YtMusicRepository.versionTimeMap(song.videoId, target.videoId) != null
+                Catalog.current.versionTimeMap(song.videoId, target.videoId) != null
             ) {
                 optimisticVersionSong = target
             }
@@ -1478,7 +1479,7 @@ private fun BitChordApp(
         if (pauseWhileResolving) c.pause()
         try {
             TrackLog.d("Player", "video switch requested for '${song.title}'", song.videoId)
-            val video = runCatching { YtMusicRepository.resolveVideo(song) }.getOrNull()
+            val video = runCatching { Catalog.current.resolveVideo(song) }.getOrNull()
             val stillCurrent = c.currentMediaItemIndex == index &&
                 c.currentMediaItem?.mediaId == song.videoId
 
@@ -1510,7 +1511,7 @@ private fun BitChordApp(
             // make the switch look finished before it had begun.
             if (!holdUntilAligned ||
                 VersionAudioAligner.getCachedOffsetMs(song.videoId, target.videoId) != null ||
-                YtMusicRepository.versionTimeMap(song.videoId, target.videoId) != null
+                Catalog.current.versionTimeMap(song.videoId, target.videoId) != null
             ) {
                 optimisticVersionSong = target
             }
@@ -1892,7 +1893,7 @@ private fun BitChordApp(
                 SearchFilter.ALBUMS
             }
             val query = listOfNotNull(name, subtitle).joinToString(" ")
-            val hit = YtMusicRepository.search(query, filter).getOrNull()
+            val hit = Catalog.current.search(query, filter).getOrNull()
                 ?.filterIsInstance<SearchResult.Browse>()
                 ?.firstOrNull()
                 ?.item
@@ -2003,7 +2004,7 @@ private fun BitChordApp(
         val session = controller ?: return@LaunchedEffect
         when (request) {
             is LinkRequest.Track -> {
-                val song = YtMusicRepository.trackLinks(request.videoId).getOrNull()
+                val song = Catalog.current.trackLinks(request.videoId).getOrNull()
                 if (song == null) {
                     Toast.makeText(
                         context,
@@ -2028,7 +2029,7 @@ private fun BitChordApp(
             }
             is LinkRequest.Search -> {
                 val songs = if (!request.play) null else {
-                    YtMusicRepository.search(request.query, SearchFilter.SONGS).getOrNull()
+                    Catalog.current.search(request.query, SearchFilter.SONGS).getOrNull()
                         ?.filterIsInstance<SearchResult.Track>()
                 }
                 val top = songs?.firstOrNull()?.song
@@ -2485,7 +2486,7 @@ private fun BitChordApp(
         val current = player.song ?: return@LaunchedEffect
         if (current.albumId != null && current.artistId != null) return@LaunchedEffect
         linksLoading = true
-        links = YtMusicRepository.trackLinks(current.videoId).getOrNull()
+        links = Catalog.current.trackLinks(current.videoId).getOrNull()
         linksLoading = false
     }
     val playerSong = player.song?.let { current ->
@@ -2511,8 +2512,8 @@ private fun BitChordApp(
     val nowPlaying: @Composable (Song) -> Unit = { song ->
         val effectiveSong = optimisticVersionSong?.takeIf {
             it.videoId == convertedAudioId || it.videoId == convertedVideoId || it.videoId == keepVideoId ||
-            it.videoId == YtMusicRepository.cachedAudioVersion(song.videoId)?.videoId ||
-            it.videoId == YtMusicRepository.cachedVideoVersion(song.videoId)?.videoId
+            it.videoId == Catalog.current.cachedAudioVersion(song.videoId)?.videoId ||
+            it.videoId == Catalog.current.cachedVideoVersion(song.videoId)?.videoId
         } ?: song
         val displayedSong = activeRadioSeed
             ?.takeIf { (videoId, _) -> effectiveSong.radioName == null && videoId == effectiveSong.videoId }
@@ -2693,7 +2694,7 @@ private fun BitChordApp(
                     )
                 } else {
                     scope.launch {
-                        val found = YtMusicRepository.findArtistPageId(name).getOrNull()
+                        val found = Catalog.current.findArtistPageId(name).getOrNull()
                         if (found != null) {
                             viewModel.openDetail(
                                 found,
@@ -4291,7 +4292,7 @@ private fun BitChordApp(
             LaunchedEffect(heldSong.videoId, needsLinks) {
                 if (!needsLinks) return@LaunchedEffect
                 menuLinksLoading = true
-                menuLinks = YtMusicRepository.trackLinks(heldSong.videoId).getOrNull()
+                menuLinks = Catalog.current.trackLinks(heldSong.videoId).getOrNull()
                 menuLinksLoading = false
             }
             val song = menuLinks?.takeIf { needsLinks && it.videoId == heldSong.videoId }?.let { extra ->
@@ -4331,13 +4332,13 @@ private fun BitChordApp(
             // becoming current, not the one about to be left.
             val versionEffectiveSong = optimisticVersionSong?.takeIf {
                 it.videoId == convertedAudioId || it.videoId == convertedVideoId || it.videoId == keepVideoId ||
-                    it.videoId == YtMusicRepository.cachedAudioVersion(song.videoId)?.videoId ||
-                    it.videoId == YtMusicRepository.cachedVideoVersion(song.videoId)?.videoId
+                    it.videoId == Catalog.current.cachedAudioVersion(song.videoId)?.videoId ||
+                    it.videoId == Catalog.current.cachedVideoVersion(song.videoId)?.videoId
             } ?: song
             fun versionAlignmentPending(targetId: String): Boolean =
                 AppSettings.smartVersionAlignment.value &&
                     VersionAudioAligner.getCachedOffsetMs(song.videoId, targetId) == null &&
-                    YtMusicRepository.versionTimeMap(song.videoId, targetId) == null
+                    Catalog.current.versionTimeMap(song.videoId, targetId) == null
             val menuIsAudioVersion = if (optimisticVersionSong != null) {
                 !optimisticVersionSong!!.isVideo
             } else {
@@ -4385,8 +4386,8 @@ private fun BitChordApp(
                             c.swapToVersion(originalAudio)
                         }
                         versionEffectiveSong.isVideo || song.isVideo -> {
-                            val cached = YtMusicRepository.cachedAudioVersion(song.videoId)
-                                ?: YtMusicRepository.cachedAudioVersion(versionEffectiveSong.videoId)
+                            val cached = Catalog.current.cachedAudioVersion(song.videoId)
+                                ?: Catalog.current.cachedAudioVersion(versionEffectiveSong.videoId)
                             if (cached != null && cached.videoId != song.videoId &&
                                 !versionAlignmentPending(cached.videoId)
                             ) {
@@ -4403,8 +4404,8 @@ private fun BitChordApp(
                             scope.launch { switchToMusicOnly(song, pauseWhileResolving = false) }
                         }
                         else -> {
-                            val cached = YtMusicRepository.cachedVideoVersion(song.videoId)
-                                ?: YtMusicRepository.cachedVideoVersion(versionEffectiveSong.videoId)
+                            val cached = Catalog.current.cachedVideoVersion(song.videoId)
+                                ?: Catalog.current.cachedVideoVersion(versionEffectiveSong.videoId)
                             if (cached != null && cached.videoId != song.videoId &&
                                 !versionAlignmentPending(cached.videoId)
                             ) {

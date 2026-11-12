@@ -73,13 +73,13 @@ object TopPicks {
         local: LocalTaste,
         now: LocalDateTime = LocalDateTime.now(),
     ): List<TopPick> = coroutineScope {
-        val historyAsync = async { YtMusicRepository.recentHistory().getOrNull().orEmpty() }
+        val historyAsync = async { Catalog.current.recentHistory().getOrNull().orEmpty() }
         val mixesAsync = async { findMixes(homeShelves) }
 
         val history = historyAsync.await()
         val ranked = weightedSample(rankArtists(history, local.artists).take(ARTIST_POOL), ARTISTS)
         val pages = ranked.map { artist ->
-            async { YtMusicRepository.artistLanding(artist.browseId!!).getOrNull() }
+            async { Catalog.current.artistLanding(artist.browseId!!).getOrNull() }
         }.awaitAll()
         val artists = ranked.zip(pages).mapNotNull { (ref, page) ->
             page?.let { ArtistCard(it.copy(name = it.name ?: ref.name), ref.browseId!!) }
@@ -144,7 +144,7 @@ object TopPicks {
         if (pick.kind == TopPickKind.PERSONAL_STATION || pick.kind == TopPickKind.DISCOVERY_STATION) {
             return freshStation(pick, target)
         }
-        return YtMusicRepository.watchQueue(target)
+        return Catalog.current.watchQueue(target)
     }
 
     /**
@@ -162,12 +162,12 @@ object TopPicks {
      * Discover Mix), so what it adds stays new to the listener.
      */
     private suspend fun freshStation(pick: TopPick, target: WatchTarget): Result<List<Song>> = coroutineScope {
-        val mixAsync = async { YtMusicRepository.watchQueue(target) }
-        val history = YtMusicRepository.recentHistory().getOrNull().orEmpty()
+        val mixAsync = async { Catalog.current.watchQueue(target) }
+        val history = Catalog.current.recentHistory().getOrNull().orEmpty()
         val seeds = history.take(SEED_POOL).shuffled().take(SEED_RADIOS)
         val radios = seeds.map { seed ->
             async {
-                YtMusicRepository.watchQueue(WatchTarget(playlistId = "RDAMVM${seed.videoId}", videoId = seed.videoId))
+                Catalog.current.watchQueue(WatchTarget(playlistId = "RDAMVM${seed.videoId}", videoId = seed.videoId))
                     .getOrNull().orEmpty()
             }
         }
@@ -246,7 +246,7 @@ object TopPicks {
         artists.forEach { artist ->
             artist.related.forEach { (name, channel) ->
                 catalogues.putIfAbsent(name) {
-                    YtMusicRepository.artistLanding(channel).getOrNull()?.let(AppleCatalogue::titlesOf).orEmpty()
+                    Catalog.current.artistLanding(channel).getOrNull()?.let(AppleCatalogue::titlesOf).orEmpty()
                 }
             }
         }
@@ -398,7 +398,7 @@ object TopPicks {
     private suspend fun findMixes(homeShelves: List<HomeShelf>): Map<Mix, ShelfItem> {
         val onHome = homeShelves.flatMap { it.items }.filter { it.isMix() }
         val mixes = onHome.takeIf { it.isNotEmpty() }
-            ?: YtMusicRepository.mixedForYou().getOrNull().orEmpty().filter { it.isMix() }
+            ?: Catalog.current.mixedForYou().getOrNull().orEmpty().filter { it.isMix() }
         if (mixes.isEmpty()) return emptyMap()
         val found = mutableMapOf<Mix, ShelfItem>()
         mixes.forEach { item ->
@@ -454,7 +454,7 @@ object TopPicks {
      */
     private suspend fun moodQueue(pick: TopPick): Result<List<Song>> = coroutineScope {
         val mood = pick.mood ?: return@coroutineScope Result.failure(IllegalStateException("mood card without a mood"))
-        val shelves = YtMusicRepository.moodGenreShelves(TopPickMood.CATEGORY_BROWSE_ID, mood.params)
+        val shelves = Catalog.current.moodGenreShelves(TopPickMood.CATEGORY_BROWSE_ID, mood.params)
             .getOrElse { return@coroutineScope Result.failure(it) }
         val playlists = { shelf: HomeShelf -> shelf.items.filter { it.browseId?.startsWith("VL") == true } }
         val candidates = shelves.filter { playlists(it).isNotEmpty() }
@@ -472,8 +472,8 @@ object TopPicks {
                 val playlistId = item.browseId!!.removePrefix("VL")
                 // As a watch queue, so YouTube hands over each official video's
                 // song version directly; the playlist page only lists videos.
-                YtMusicRepository.playlistAsAudio(playlistId).getOrNull()?.takeIf { it.isNotEmpty() }
-                    ?: YtMusicRepository.browseSongs(item.browseId!!).getOrNull()?.songs.orEmpty()
+                Catalog.current.playlistAsAudio(playlistId).getOrNull()?.takeIf { it.isNotEmpty() }
+                    ?: Catalog.current.browseSongs(item.browseId!!).getOrNull()?.songs.orEmpty()
             }
         }.awaitAll().flatten()
             // A row YouTube couldn't pair stays the video, and plays as one;

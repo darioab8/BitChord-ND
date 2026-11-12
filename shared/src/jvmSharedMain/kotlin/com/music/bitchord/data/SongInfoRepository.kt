@@ -80,7 +80,7 @@ object SongInfoRepository {
         var year: String? = null
         val release = attempt {
             val linked = if (song.albumId == null) {
-                YtMusicRepository.trackLinks(song.videoId).getOrThrow()
+                Catalog.current.trackLinks(song.videoId).getOrThrow()
             } else song
             album = album ?: linked.albumName
             linked.albumId?.let { id ->

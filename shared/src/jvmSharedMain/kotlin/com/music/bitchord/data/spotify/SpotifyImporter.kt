@@ -1,7 +1,7 @@
 package com.music.bitchord.data.spotify
 
+import com.music.bitchord.data.Catalog
 import com.music.bitchord.data.Http
-import com.music.bitchord.data.YtMusicRepository
 import com.music.bitchord.data.model.SearchFilter
 import com.music.bitchord.data.model.SearchResult
 import com.music.bitchord.data.model.Song
@@ -162,7 +162,7 @@ object SpotifyImporter {
      */
     suspend fun matchTrack(track: SpotifyTrack): Song? {
         val query = listOf(track.title, track.artist).filter { it.isNotBlank() }.joinToString(" ")
-        val candidates = YtMusicRepository.search(query, SearchFilter.SONGS).getOrNull()
+        val candidates = Catalog.current.search(query, SearchFilter.SONGS).getOrNull()
             ?.filterIsInstance<SearchResult.Track>()
             ?.map { it.song }
             .orEmpty()
@@ -265,7 +265,7 @@ object SpotifyImporter {
                         "${track.title} ${track.artist}".trim()
                     }
 
-                    val searchResult = YtMusicRepository.search(query, SearchFilter.SONGS).getOrNull()
+                    val searchResult = Catalog.current.search(query, SearchFilter.SONGS).getOrNull()
                     val candidates = searchResult?.filterIsInstance<SearchResult.Track>()?.map { it.song }.orEmpty()
 
                     val target = TrackMatcher.Target(

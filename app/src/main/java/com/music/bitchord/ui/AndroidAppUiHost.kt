@@ -1,10 +1,10 @@
 package com.music.bitchord.ui
 
+import com.music.bitchord.data.Catalog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.music.bitchord.data.AppleCatalogue
-import com.music.bitchord.data.YtMusicRepository
 import com.music.bitchord.data.canvas.AppleArtistArtRepository
 import com.music.bitchord.data.canvas.CanvasArtwork
 import com.music.bitchord.data.canvas.CanvasRepository
@@ -37,7 +37,7 @@ object AndroidAppUiHost : AppUiHost {
     override suspend fun artistMotion(browseId: String, artistName: String): CanvasArtwork? {
         if (!AppSettings.animatedCanvas.value) return null
         val art = AppleArtistArtRepository.artFor(browseId, artistName) {
-            YtMusicRepository.artistLanding(browseId).getOrNull()?.let(AppleCatalogue::titlesOf).orEmpty()
+            Catalog.current.artistLanding(browseId).getOrNull()?.let(AppleCatalogue::titlesOf).orEmpty()
         }
         return art?.videoUrl?.let { CanvasArtwork(url = it) }
     }
