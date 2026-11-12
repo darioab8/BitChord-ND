@@ -403,9 +403,7 @@ class SubsonicRepository(private val client: () -> SubsonicClient?) : CatalogRep
                 albums.maxByOrNull { it.year ?: 0 }?.let { runCatching { c.album(it.id).second }.getOrNull() }.orEmpty()
             }
             val info = infoAsync.await()
-            val (singles, full) = albums.partition { a ->
-                a.releaseTypes.any { it.equals("Single", true) || it.equals("EP", true) }
-            }
+            val (singles, full) = albums.partition { a -> releaseKind(a) != "Album" }
             ArtistPage(
                 songs = songs.map { c.toSong(it) },
                 moreSongsBrowseId = null,
