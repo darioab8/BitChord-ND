@@ -140,7 +140,7 @@
     <string name="downloaded">Descargada</string>
     <string name="explore">Explorar</string>
     <string name="library">Biblioteca</string>
-    <string name="library_sign_in_description">Inicia sesión en tu cuenta de Google para ver tus canciones favoritas, playlists e historial de YouTube Music.</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="new_playlist">Nueva lista</string>
     <string name="on_device">En el dispositivo</string>
     <string name="personalized_recommendations">Recibe recomendaciones personalizadas</string>
@@ -154,9 +154,9 @@
     <string name="recent_searches">Búsquedas recientes</string>
     <string name="replay_subtitle">Tus canciones, artistas, álbumes y géneros principales</string>
     <string name="retry">Reintentar</string>
-    <string name="saved_to_youtube_music">Guardada en YouTube Music</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="search">Buscar</string>
-    <string name="search_empty">Busca millones de canciones en YouTube Music.</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="search_hint">Artistas, canciones, letras y más</string>
     <string name="selected">Seleccionado</string>
     <string name="share">Compartir</string>
@@ -187,7 +187,7 @@
     <string name="shelf_youtube_charts">Listas de YouTube</string>
     <string name="show_all">Ver todo</string>
     <string name="sign_in">Iniciar sesión</string>
-    <string name="sign_in_youtube_music">Iniciar sesión en YouTube Music</string>
+    <string name="sign_in_youtube_music">Connect your music server</string>
     <string name="subscriptions">Suscripciones</string>
     <string name="your_replay">Tu Replay</string>
     <string name="your_listening_experience">Tu experiencia musical</string>

@@ -32,7 +32,7 @@
     <string name="on_device">Di Perangkat</string>
     <string name="playlists">Playlist</string>
     <string name="new_playlist">Playlist baru</string>
-    <string name="saved_to_youtube_music">Disimpan ke YouTube Music</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="sign_in">Masuk</string>
     <string name="sign_out">Keluar</string>
     <string name="signed_in">Sudah masuk</string>
@@ -60,7 +60,7 @@
     <string name="artists">Artis</string>
     <string name="albums">Album</string>
     <string name="no_album_metadata">Tidak ada trek ini yang menunjukkan asal albumnya.</string>
-    <string name="search_empty">Cari jutaan lagu di YouTube Music.</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="recent_searches">Pencarian terbaru</string>
     <string name="clear">Hapus</string>
     <string name="search_hint">Artis, Lagu, Lirik, dan Lainnya</string>
@@ -321,7 +321,7 @@
     <string name="wifi_only_download_refusal">Unduhan dibatasi hanya lewat Wi-Fi. Nonaktifkan itu di Pengaturan untuk menggunakan data seluler.</string>
     <string name="pinned_playlist_limit">Hanya %1$d playlist yang dapat disematkan</string>
     <string name="downloaded_playlist">Playlist yang diunduh</string>
-    <string name="library_sign_in_description">Masuk ke akun Google Anda untuk melihat lagu yang disukai, playlist, dan riwayat YouTube Music Anda.</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="downloads_progress">Unduhan · %1$d%%</string>
     <string name="downloads_finished">Unduhan · selesai</string>
     <string name="downloading_progress">Mengunduh · %1$d%%</string>
@@ -329,7 +329,7 @@
     <string name="saved_to_bitchord_folder">Disimpan ke Music/BitChord</string>
     <string name="nothing_downloading">Tidak ada yang sedang diunduh</string>
     <string name="nothing_to_explore">Belum ada yang bisa dijelajahi saat ini</string>
-    <string name="no_youtube_music_results">Tidak ada hasil dari YouTube Music</string>
+    <string name="no_youtube_music_results">No results on your server</string>
     <string name="library_empty">Belum ada apa pun di perpustakaan Anda</string>
     <string name="history_sign_in_required">Masuk untuk melihat apa yang telah Anda dengarkan</string>
     <string name="history_empty">Belum ada yang diputar</string>
@@ -337,7 +337,7 @@
     <string name="downloaded_playlist_empty">Tidak ada lagi dari playlist ini yang tersimpan di perangkat ini</string>
     <string name="no_local_audio_found">Tidak ada file audio yang ditemukan di perangkat ini</string>
     <string name="no_internet_connection">Tidak ada koneksi internet</string>
-    <string name="youtube_request_rejected">YouTube Music menolak permintaan ini. Coba masuk lagi.</string>
+    <string name="youtube_request_rejected">Your server rejected the request. Try signing in again.</string>
     <string name="something_went_wrong">Terjadi kesalahan</string>
     <string name="unknown_artist">Artis tidak dikenal</string>
     <plurals name="downloads_failed_count">
@@ -424,7 +424,7 @@
     <string name="rich_presence_footer">Tampilkan apa yang sedang Anda putar di profil Discord Anda.</string>
     <string name="save_name">Simpan nama</string>
     <string name="saved_to_downloads">Disimpan ke Unduhan</string>
-    <string name="saved_to_youtube_music_account">Disimpan ke akun YouTube Music Anda</string>
+    <string name="saved_to_youtube_music_account">Saved to your server</string>
     <string name="scrobble_delay">Penundaan scrobble</string>
     <string name="scrobble_delay_subtitle">Seberapa jauh ke dalam lagu untuk melakukan scrobble</string>
     <string name="scrobble_timing">Waktu scrobble</string>
@@ -633,8 +633,8 @@
     <string name="swipe_plays_next">Menggeser lagu memutarnya berikutnya</string>
     <string name="swipe_adds_to_queue">Saat dinonaktifkan, menggeser menambahkan lagu ke akhir antrean</string>
     <string name="import_backup_warning">Ini akan mengganti pengaturan dan riwayat mendengarkan perangkat ini dengan isi file tersebut. Ekspor data saat ini terlebih dahulu jika ingin menyimpannya.</string>
-    <string name="youtube_music_account">Akun YouTube Music</string>
-    <string name="tap_to_sign_in_google">Ketuk untuk masuk dengan Google</string>
+    <string name="youtube_music_account">Music server</string>
+    <string name="tap_to_sign_in_google">Tap to connect your server</string>
     <string name="export_succeeded">Berhasil mengekspor pengaturan dan %1$s</string>
     <string name="export_failed">Ekspor gagal: %1$s</string>
     <string name="import_succeeded">Berhasil mengimpor %1$s dari v%2$s</string>
@@ -1259,14 +1259,14 @@
     <string name="lossless_output_permission">Periksa codec Bluetooth</string>
     <string name="lossless_output_permission_detail">Izinkan Perangkat di sekitar agar headphone LDAC atau LHDC bisa membuka addon lossless</string>
     <string name="cached_songs">Lagu dalam cache</string>
-    <string name="cached_songs_subtitle">Lagu dari YouTube dan JioSaavn di cache lagu</string>
-    <string name="cached_songs_empty">Belum ada lagu dalam cache. Lagu yang kamu putar dari YouTube atau JioSaavn akan muncul di sini.</string>
+    <string name="cached_songs_subtitle">Songs kept in the song cache</string>
+    <string name="cached_songs_empty">No cached songs yet. Songs you stream will show up here.</string>
     <string name="cached_song_partial">Sebagian</string>
     <string name="remove_from_cache">Hapus dari cache</string>
     <string name="cached_song_remove">Hapus</string>
     <string name="removed_from_cache">Dihapus dari cache lagu</string>
     <string name="show_cache_folder">Tampilkan folder lagu dalam cache</string>
-    <string name="show_cache_folder_subtitle">Menambahkan folder di Pustaka berisi lagu YouTube dan JioSaavn yang disimpan di cache lagu</string>
+    <string name="show_cache_folder_subtitle">Adds a Cached songs folder to Library with the songs kept in the song cache</string>
     <string name="song_cache_unlimited">Tanpa batas</string>
     <string name="song_cache_unlimited_subtitle">Tanpa batas. Audio dalam cache bisa terus bertambah hingga penyimpanan penuh.</string>
     <string name="clear_song_cache_title">Hapus cache lagu?</string>
@@ -1323,14 +1323,14 @@
     <string name="replay_period_monthly">Bulanan</string>
     <string name="replay_period_yearly">Tahunan</string>
     <string name="replay_period_lifetime">Sepanjang masa</string>
-    <string name="onboarding_title">Jutaan lagu, streaming di BitChord</string>
+    <string name="onboarding_title">Your music, streamed on BitChord</string>
     <string name="onboarding_name_prompt">Anda ingin dipanggil apa?</string>
     <string name="onboarding_name_hint">Nama Anda</string>
-    <string name="onboarding_name_footer">Teman akan melihatnya saat Anda memakai Dengarkan Bersama. Anda bisa mengubahnya nanti di Pengaturan.</string>
+    <string name="onboarding_name_footer">You can change it later in Settings.</string>
     <string name="onboarding_next">Berikutnya</string>
-    <string name="onboarding_connect_title">Hubungkan akun YouTube Anda</string>
-    <string name="onboarding_connect_body">Bawa pustaka, playlist, dan mix Anda, lalu mulai sesi Dengarkan Bersama dengan teman.</string>
-    <string name="onboarding_sign_in_google">Masuk dengan Google</string>
+    <string name="onboarding_connect_title">Connect your music server</string>
+    <string name="onboarding_connect_body">Bring your library, playlists and starred songs from Navidrome or any Subsonic server.</string>
+    <string name="onboarding_sign_in_google">Connect a server</string>
     <string name="onboarding_skip_sign_in">Lewati masuk</string>
     <string name="onboarding_back">Kembali</string>
     <string name="wear_os_section">BitChord untuk Wear OS</string>
@@ -1439,4 +1439,7 @@
     <string name="diwali_cta">Let\'s Celebrate</string>
     <string name="diwali_subtitle">May this festival of lights fill your home with joy and your days with music.</string>
     <string name="diwali_title">BitChord wishes you a Happy Diwali</string>
+    <!-- BitChord ND -->
+    <string name="nd_search_source_server">Server</string>
+    <string name="nd_sources_subtitle">WebDAV and SMB libraries</string>
 </resources>

@@ -140,7 +140,7 @@
     <string name="downloaded">Diunduh</string>
     <string name="explore">Jelajahi</string>
     <string name="library">Perpustakaan</string>
-    <string name="library_sign_in_description">Masuk ke akun Google Anda untuk melihat lagu yang disukai, playlist, dan riwayat YouTube Music Anda.</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="new_playlist">Playlist baru</string>
     <string name="on_device">Di Perangkat</string>
     <string name="personalized_recommendations">Dapatkan rekomendasi yang dipersonalisasi</string>
@@ -154,9 +154,9 @@
     <string name="recent_searches">Pencarian terbaru</string>
     <string name="replay_subtitle">Lagu, artis, album, dan genre teratas Anda</string>
     <string name="retry">Coba lagi</string>
-    <string name="saved_to_youtube_music">Disimpan ke YouTube Music</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="search">Cari</string>
-    <string name="search_empty">Cari jutaan lagu di YouTube Music.</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="search_hint">Artis, Lagu, Lirik, dan Lainnya</string>
     <string name="selected">Dipilih</string>
     <string name="share">Bagikan</string>
@@ -187,7 +187,7 @@
     <string name="shelf_youtube_charts">Tangga Lagu YouTube</string>
     <string name="show_all">Lihat semua</string>
     <string name="sign_in">Masuk</string>
-    <string name="sign_in_youtube_music">Masuk ke YouTube Music</string>
+    <string name="sign_in_youtube_music">Connect your music server</string>
     <string name="subscriptions">Langganan</string>
     <string name="your_replay">Replay Anda</string>
     <string name="your_listening_experience">Pengalaman mendengarkan Anda</string>

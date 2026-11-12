@@ -35,7 +35,7 @@
     <string name="on_device">במכשיר</string>
     <string name="playlists">פלייליסטים</string>
     <string name="new_playlist">פלייליסט חדש</string>
-    <string name="saved_to_youtube_music">נשמר ל-YouTube Music</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="sign_in">התחברות</string>
     <string name="sign_out">התנתקות</string>
     <string name="signed_in">מחובר</string>
@@ -66,7 +66,7 @@
     <string name="artists">אמנים</string>
     <string name="albums">אלבומים</string>
     <string name="no_album_metadata">אף אחת מהרצועות האלה לא מציינת מאיזה אלבום היא.</string>
-    <string name="search_empty">חפשו מיליוני שירים ב-YouTube Music.</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="recent_searches">חיפושים אחרונים</string>
     <string name="clear">ניקוי</string>
     <string name="search_hint">אמנים, שירים, מילות שיר ועוד</string>
@@ -327,7 +327,7 @@
     <string name="wifi_only_download_refusal">הורדות מוגבלות ל-Wi-Fi. כבה זאת בהגדרות כדי להשתמש בנתונים סלולריים.</string>
     <string name="pinned_playlist_limit">ניתן לנעוץ רק %1$d רשימות השמעה</string>
     <string name="downloaded_playlist">רשימת השמעה שהורדה</string>
-    <string name="library_sign_in_description">היכנס לחשבון הגוגל שלך כדי לראות את השירים שאהבת, רשימות ההשמעה והיסטוריית ה-YouTube Music.</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="downloads_progress">הורדות · %1$d%%</string>
     <string name="downloads_finished">הורדות · הסתיימו</string>
     <string name="downloading_progress">מוריד · %1$d%%</string>
@@ -335,7 +335,7 @@
     <string name="saved_to_bitchord_folder">נשמר ב-Music/BitChord</string>
     <string name="nothing_downloading">שום דבר לא יורד</string>
     <string name="nothing_to_explore">אין מה לחקור כרגע</string>
-    <string name="no_youtube_music_results">אין תוצאות מ-YouTube Music</string>
+    <string name="no_youtube_music_results">No results on your server</string>
     <string name="library_empty">שום דבר בספרייה שלך עדיין</string>
     <string name="history_sign_in_required">היכנס כדי לראות למה האזנת</string>
     <string name="history_empty">שום דבר לא הושמע עדיין</string>
@@ -343,7 +343,7 @@
     <string name="downloaded_playlist_empty">שום דבר מרשימת ההשמעה הזו לא נשאר במכשיר הזה</string>
     <string name="no_local_audio_found">לא נמצאו קבצי שמע במכשיר זה</string>
     <string name="no_internet_connection">אין חיבור אינטרנט</string>
-    <string name="youtube_request_rejected">YouTube Music דחתה את הבקשה. נסה להתחבר שוב.</string>
+    <string name="youtube_request_rejected">Your server rejected the request. Try signing in again.</string>
     <string name="something_went_wrong">משהו השתבש</string>
     <string name="unknown_artist">אמן לא ידוע</string>
     <string name="your_playlists">רשימות ההשמעה שלך</string>
@@ -403,7 +403,7 @@
     <string name="rich_presence_footer">הראה במה אתה משחק בפרופיל דיסקורד שלך.</string>
     <string name="save_name">שמור שם</string>
     <string name="saved_to_downloads">נשמר בהורדות</string>
-    <string name="saved_to_youtube_music_account">נשמר בחשבון ה-YouTube Music שלך</string>
+    <string name="saved_to_youtube_music_account">Saved to your server</string>
     <string name="scrobble_delay">השהיית scrobble</string>
     <string name="scrobble_delay_subtitle">כמה רחוק בתוך השיר כדי לתעד</string>
     <string name="scrobble_timing">תזמון scrobble</string>
@@ -604,8 +604,8 @@
     <string name="swipe_plays_next">החלקה של שיר מנגנת אותו בהמשך</string>
     <string name="swipe_adds_to_queue">כאשר מושבת, החלקה מוסיפה את השיר לסוף התור</string>
     <string name="import_backup_warning">זה מחליף את ההגדרות והיסטוריית ההאזנה של מכשיר זה בתוכן הקובץ. ייצא את הנתונים הנוכחיים תחילה אם תרצה לשמור אותם.</string>
-    <string name="youtube_music_account">חשבון YouTube Music</string>
-    <string name="tap_to_sign_in_google">הקש כדי להתחבר עם גוגל</string>
+    <string name="youtube_music_account">Music server</string>
+    <string name="tap_to_sign_in_google">Tap to connect your server</string>
     <string name="export_succeeded">הגדרות ו-%1$s יוצאו בהצלחה</string>
     <string name="export_failed">הייצוא נכשל: %1$s</string>
     <string name="import_succeeded">יובאו %1$s מ-v%2$s</string>
@@ -1287,14 +1287,14 @@
     <string name="lossless_output_permission">בדיקת קודק Bluetooth</string>
     <string name="lossless_output_permission_detail">אפשרו מכשירים בקרבת מקום כדי שאוזניות LDAC או LHDC יפתחו תוספים ללא אובדן</string>
     <string name="cached_songs">שירים במטמון</string>
-    <string name="cached_songs_subtitle">שירים מ-YouTube ומ-JioSaavn במטמון השירים</string>
-    <string name="cached_songs_empty">אין עדיין שירים במטמון. שירים שתנגן מ-YouTube או מ-JioSaavn יופיעו כאן.</string>
+    <string name="cached_songs_subtitle">Songs kept in the song cache</string>
+    <string name="cached_songs_empty">No cached songs yet. Songs you stream will show up here.</string>
     <string name="cached_song_partial">חלקי</string>
     <string name="remove_from_cache">הסרה מהמטמון</string>
     <string name="cached_song_remove">הסרה</string>
     <string name="removed_from_cache">הוסר ממטמון השירים</string>
     <string name="show_cache_folder">הצג תיקיית שירים במטמון</string>
-    <string name="show_cache_folder_subtitle">מוסיף לספרייה תיקייה עם שירי YouTube ו-JioSaavn שנשמרו במטמון</string>
+    <string name="show_cache_folder_subtitle">Adds a Cached songs folder to Library with the songs kept in the song cache</string>
     <string name="song_cache_unlimited">ללא הגבלה</string>
     <string name="song_cache_unlimited_subtitle">אין מגבלה. האודיו במטמון יכול לגדול עד שהאחסון יתמלא.</string>
     <string name="clear_song_cache_title">לנקות את מטמון השירים?</string>
@@ -1351,14 +1351,14 @@
     <string name="replay_period_monthly">חודשי</string>
     <string name="replay_period_yearly">שנתי</string>
     <string name="replay_period_lifetime">כל הזמן</string>
-    <string name="onboarding_title">מיליוני שירים, בסטרימינג ב-BitChord</string>
+    <string name="onboarding_title">Your music, streamed on BitChord</string>
     <string name="onboarding_name_prompt">איך לקרוא לך?</string>
     <string name="onboarding_name_hint">השם שלך</string>
-    <string name="onboarding_name_footer">חברים רואים את זה כשמאזינים יחד. אפשר לשנות זאת מאוחר יותר בהגדרות.</string>
+    <string name="onboarding_name_footer">You can change it later in Settings.</string>
     <string name="onboarding_next">הבא</string>
-    <string name="onboarding_connect_title">חיבור חשבון YouTube</string>
-    <string name="onboarding_connect_body">הביאו איתכם את הספרייה, הפלייליסטים והמיקסים, והתחילו מסיבת האזנה משותפת עם חברים.</string>
-    <string name="onboarding_sign_in_google">התחברות עם Google</string>
+    <string name="onboarding_connect_title">Connect your music server</string>
+    <string name="onboarding_connect_body">Bring your library, playlists and starred songs from Navidrome or any Subsonic server.</string>
+    <string name="onboarding_sign_in_google">Connect a server</string>
     <string name="onboarding_skip_sign_in">דילוג על ההתחברות</string>
     <string name="onboarding_back">חזרה</string>
     <string name="wear_os_section">BitChord ל-Wear OS</string>
@@ -1467,4 +1467,7 @@
     <string name="diwali_cta">Let\'s Celebrate</string>
     <string name="diwali_subtitle">May this festival of lights fill your home with joy and your days with music.</string>
     <string name="diwali_title">BitChord wishes you a Happy Diwali</string>
+    <!-- BitChord ND -->
+    <string name="nd_search_source_server">Server</string>
+    <string name="nd_sources_subtitle">WebDAV and SMB libraries</string>
 </resources>

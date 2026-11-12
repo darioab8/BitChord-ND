@@ -34,7 +34,7 @@
     <string name="on_device">Sur l\'appareil</string>
     <string name="playlists">Playlists</string>
     <string name="new_playlist">Nouvelle playlist</string>
-    <string name="saved_to_youtube_music">Enregistrée sur YouTube Music</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="sign_in">Se connecter</string>
     <string name="sign_out">Se déconnecter</string>
     <string name="signed_in">Connecté</string>
@@ -65,7 +65,7 @@
     <string name="artists">Artistes</string>
     <string name="albums">Albums</string>
     <string name="no_album_metadata">Aucun de ces titres n\'indique son album.</string>
-    <string name="search_empty">Recherchez des millions de chansons sur YouTube Music.</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="recent_searches">Recherches récentes</string>
     <string name="clear">Effacer</string>
     <string name="search_hint">Artistes, chansons, paroles et plus</string>
@@ -327,7 +327,7 @@
     <string name="wifi_only_download_refusal">Les téléchargements sont limités au Wi-Fi. Désactivez cette option dans les paramètres pour utiliser les données mobiles.</string>
     <string name="pinned_playlist_limit">Seulement %1$d playlists peuvent être épinglées</string>
     <string name="downloaded_playlist">Playlist téléchargée</string>
-    <string name="library_sign_in_description">Connectez-vous à votre compte Google pour voir vos chansons aimées, vos playlists et votre historique YouTube Music.</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="downloads_progress">Téléchargements · %1$d%%</string>
     <string name="downloads_finished">Téléchargements · terminés</string>
     <string name="downloading_progress">Téléchargement · %1$d%%</string>
@@ -335,7 +335,7 @@
     <string name="saved_to_bitchord_folder">Enregistrée dans Musique/BitChord</string>
     <string name="nothing_downloading">Aucun téléchargement en cours</string>
     <string name="nothing_to_explore">Rien à explorer pour le moment</string>
-    <string name="no_youtube_music_results">Aucun résultat de YouTube Music</string>
+    <string name="no_youtube_music_results">No results on your server</string>
     <string name="library_empty">Votre bibliothèque est encore vide</string>
     <string name="history_sign_in_required">Connectez-vous pour voir ce que vous avez écouté</string>
     <string name="history_empty">Rien n\'a encore été joué</string>
@@ -343,7 +343,7 @@
     <string name="downloaded_playlist_empty">Il ne reste plus rien de cette playlist sur cet appareil</string>
     <string name="no_local_audio_found">Aucun fichier audio trouvé sur cet appareil</string>
     <string name="no_internet_connection">Aucune connexion internet</string>
-    <string name="youtube_request_rejected">YouTube Music a rejeté la requête. Essayez de vous reconnecter.</string>
+    <string name="youtube_request_rejected">Your server rejected the request. Try signing in again.</string>
     <string name="something_went_wrong">Un problème est survenu</string>
     <string name="unknown_artist">Artiste inconnu</string>
     <plurals name="downloads_failed_count">
@@ -439,7 +439,7 @@
     <string name="rich_presence_footer">Affiche ce que vous écoutez sur votre profil Discord.</string>
     <string name="save_name">Enregistrer le nom</string>
     <string name="saved_to_downloads">Enregistrée dans Téléchargements</string>
-    <string name="saved_to_youtube_music_account">Enregistrée sur votre compte YouTube Music</string>
+    <string name="saved_to_youtube_music_account">Saved to your server</string>
     <string name="scrobble_delay">Délai de scrobbling</string>
     <string name="scrobble_delay_subtitle">À quel moment de la chanson elle est scrobblée</string>
     <string name="scrobble_timing">Moment du scrobbling</string>
@@ -653,8 +653,8 @@
     <string name="swipe_plays_next">Glisser une chanson la fait jouer ensuite</string>
     <string name="swipe_adds_to_queue">Lorsque c\'est désactivé, glisser ajoute la chanson à la fin de la file d\'attente</string>
     <string name="import_backup_warning">Cela remplace les paramètres et l\'historique d\'écoute de cet appareil par le contenu du fichier. Exportez d\'abord les données actuelles si vous voulez les conserver.</string>
-    <string name="youtube_music_account">Compte YouTube Music</string>
-    <string name="tap_to_sign_in_google">Appuyez pour vous connecter avec Google</string>
+    <string name="youtube_music_account">Music server</string>
+    <string name="tap_to_sign_in_google">Tap to connect your server</string>
     <string name="export_succeeded">Paramètres et %1$s exportés</string>
     <string name="export_failed">Échec de l\'exportation : %1$s</string>
     <string name="import_succeeded">%1$s importé depuis v%2$s</string>
@@ -1283,14 +1283,14 @@
     <string name="lossless_output_permission">Vérifier le codec Bluetooth</string>
     <string name="lossless_output_permission_detail">Autorisez Appareils à proximité pour qu\'un casque LDAC ou LHDC débloque les modules sans perte</string>
     <string name="cached_songs">Titres en cache</string>
-    <string name="cached_songs_subtitle">Titres de YouTube et JioSaavn dans le cache audio</string>
-    <string name="cached_songs_empty">Aucun titre en cache pour l’instant. Les titres lus depuis YouTube ou JioSaavn apparaîtront ici.</string>
+    <string name="cached_songs_subtitle">Songs kept in the song cache</string>
+    <string name="cached_songs_empty">No cached songs yet. Songs you stream will show up here.</string>
     <string name="cached_song_partial">Partiel</string>
     <string name="remove_from_cache">Retirer du cache</string>
     <string name="cached_song_remove">Retirer</string>
     <string name="removed_from_cache">Retiré du cache des titres</string>
     <string name="show_cache_folder">Afficher le dossier des titres en cache</string>
-    <string name="show_cache_folder_subtitle">Ajoute à la Bibliothèque un dossier avec les titres YouTube et JioSaavn conservés dans le cache</string>
+    <string name="show_cache_folder_subtitle">Adds a Cached songs folder to Library with the songs kept in the song cache</string>
     <string name="song_cache_unlimited">Illimité</string>
     <string name="song_cache_unlimited_subtitle">Aucune limite. L\'audio en cache peut grandir jusqu\'à remplir votre stockage.</string>
     <string name="clear_song_cache_title">Vider le cache audio ?</string>
@@ -1347,14 +1347,14 @@
     <string name="replay_period_monthly">Mensuel</string>
     <string name="replay_period_yearly">Annuel</string>
     <string name="replay_period_lifetime">À vie</string>
-    <string name="onboarding_title">Des millions de titres à écouter sur BitChord</string>
+    <string name="onboarding_title">Your music, streamed on BitChord</string>
     <string name="onboarding_name_prompt">Comment devons-nous vous appeler ?</string>
     <string name="onboarding_name_hint">Votre nom</string>
-    <string name="onboarding_name_footer">Vos amis le voient quand vous utilisez Écoute partagée. Vous pourrez le modifier plus tard dans les Réglages.</string>
+    <string name="onboarding_name_footer">You can change it later in Settings.</string>
     <string name="onboarding_next">Suivant</string>
-    <string name="onboarding_connect_title">Connectez votre compte YouTube</string>
-    <string name="onboarding_connect_body">Retrouvez votre bibliothèque, vos playlists et vos mix, et lancez une soirée Écoute partagée avec vos amis.</string>
-    <string name="onboarding_sign_in_google">Se connecter avec Google</string>
+    <string name="onboarding_connect_title">Connect your music server</string>
+    <string name="onboarding_connect_body">Bring your library, playlists and starred songs from Navidrome or any Subsonic server.</string>
+    <string name="onboarding_sign_in_google">Connect a server</string>
     <string name="onboarding_skip_sign_in">Passer la connexion</string>
     <string name="onboarding_back">Retour</string>
     <string name="wear_os_section">BitChord pour Wear OS</string>
@@ -1463,4 +1463,7 @@
     <string name="diwali_cta">Let\'s Celebrate</string>
     <string name="diwali_subtitle">May this festival of lights fill your home with joy and your days with music.</string>
     <string name="diwali_title">BitChord wishes you a Happy Diwali</string>
+    <!-- BitChord ND -->
+    <string name="nd_search_source_server">Server</string>
+    <string name="nd_sources_subtitle">WebDAV and SMB libraries</string>
 </resources>

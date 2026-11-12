@@ -140,7 +140,7 @@
     <string name="downloaded">ダウンロード済み</string>
     <string name="explore">見つける</string>
     <string name="library">ライブラリ</string>
-    <string name="library_sign_in_description">Googleアカウントにログインすると、高評価した曲、プレイリスト、YouTube Musicの履歴が表示されます。</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="new_playlist">新しいプレイリスト</string>
     <string name="on_device">デバイス内</string>
     <string name="personalized_recommendations">あなたに合わせたおすすめを受け取る</string>
@@ -154,9 +154,9 @@
     <string name="recent_searches">最近の検索</string>
     <string name="replay_subtitle">よく聴いた曲、アーティスト、アルバム、ジャンル</string>
     <string name="retry">再試行</string>
-    <string name="saved_to_youtube_music">YouTube Musicに保存済み</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="search">検索</string>
-    <string name="search_empty">YouTube Musicで何百万もの曲を検索できます。</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="search_hint">アーティスト、曲、歌詞など</string>
     <string name="selected">選択済み</string>
     <string name="share">共有</string>
@@ -187,7 +187,7 @@
     <string name="shelf_youtube_charts">YouTube チャート</string>
     <string name="show_all">すべて表示</string>
     <string name="sign_in">ログイン</string>
-    <string name="sign_in_youtube_music">YouTube Musicにログイン</string>
+    <string name="sign_in_youtube_music">Connect your music server</string>
     <string name="subscriptions">登録チャンネル</string>
     <string name="your_replay">あなたのReplay</string>
     <string name="your_listening_experience">あなたの再生体験</string>

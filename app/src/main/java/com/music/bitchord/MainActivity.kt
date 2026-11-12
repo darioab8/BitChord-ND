@@ -130,6 +130,8 @@ import com.music.bitchord.auth.SpotifyLoginScreen
 import com.music.bitchord.auth.WebSessionMode
 import com.music.bitchord.auth.YtMusicLoginScreen
 import com.music.bitchord.auth.SubsonicLoginScreen
+import com.music.bitchord.data.NdFeatures
+import com.music.bitchord.data.subsonic.SubsonicIds
 import com.music.bitchord.data.AppUpdateChecker
 import com.music.bitchord.data.LocalMediaRepository
 import com.music.bitchord.data.listentogether.JamInviteLink
@@ -3617,14 +3619,21 @@ private fun BitChordApp(
                                 // The settings page's own two-state selector, so the
                                 // app has one look for "pick one of these".
                                 sourceSwitcher = {
+                                    // BitChord ND: the server and this device; addons only
+                                    // ever stood in for YouTube.
+                                    val sources = SearchSource.entries.filter { NdFeatures.YOUTUBE || it != SearchSource.ADDONS }
                                     SegmentedControl(
-                                        options = listOf(
-                                            stringResource(R.string.search_source_youtube),
-                                            stringResource(R.string.library),
-                                            stringResource(R.string.search_source_addons),
-                                        ),
-                                        selectedIndex = searchSource.ordinal,
-                                        onSelect = { index -> onSearchSourceChange(SearchSource.entries[index]) },
+                                        options = sources.map { source ->
+                                            when (source) {
+                                                SearchSource.YOUTUBE -> stringResource(
+                                                    if (NdFeatures.YOUTUBE) R.string.search_source_youtube else R.string.nd_search_source_server,
+                                                )
+                                                SearchSource.LIBRARY -> stringResource(R.string.library)
+                                                SearchSource.ADDONS -> stringResource(R.string.search_source_addons)
+                                            }
+                                        },
+                                        selectedIndex = sources.indexOf(searchSource).coerceAtLeast(0),
+                                        onSelect = { index -> onSearchSourceChange(sources[index]) },
                                     )
                                 },
                                 searchingLibrary = searchSource == SearchSource.LIBRARY,
@@ -3676,7 +3685,7 @@ private fun BitChordApp(
                                 // does nothing; see [onBrowseLongPress].
                                 onShelfItemLongPress = onBrowseLongPress,
                                 onNewPlaylist = { creatingPlaylist = true },
-                                onImportSpotifyPlaylist = { showSpotifyImportDialog = true },
+                                onImportSpotifyPlaylist = if (NdFeatures.YOUTUBE) ({ showSpotifyImportDialog = true }) else null,
                                 onShowAll = { shelf -> navigator.push(AppRoute.LibraryShowAll(shelf)) },
                                 replay = {
                                     LibraryReplayEntry(
@@ -4306,7 +4315,12 @@ private fun BitChordApp(
             val share: () -> Unit = {
                 val sendIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/watch?v=${song.videoId}")
+                    putExtra(
+                        Intent.EXTRA_TEXT,
+                        // BitChord ND: a server song has no public link; share what it is.
+                        if (SubsonicIds.isSubsonic(song.videoId)) "${song.title} — ${song.artist}"
+                        else "https://music.youtube.com/watch?v=${song.videoId}",
+                    )
                 }
                 context.startActivity(Intent.createChooser(sendIntent, song.title))
                 songActions = null
@@ -5155,6 +5169,8 @@ private fun BitChordApp(
                 // and off anything with no real browse id behind it.
                 onShare = target.browseId
                     ?.takeIf { remote && (target.type == BrowseType.ALBUM || target.type == BrowseType.PLAYLIST) }
+                    // BitChord ND: no public link for a server album or playlist.
+                    ?.takeUnless(SubsonicIds::isSubsonic)
                     ?.let { id ->
                         {
                             val url = if (target.type == BrowseType.PLAYLIST) {

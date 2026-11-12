@@ -32,7 +32,7 @@
     <string name="on_device">ในอุปกรณ์</string>
     <string name="playlists">เพลย์ลิสต์</string>
     <string name="new_playlist">เพลย์ลิสต์ใหม่</string>
-    <string name="saved_to_youtube_music">บันทึกลง YouTube Music แล้ว</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="sign_in">ลงชื่อเข้าใช้</string>
     <string name="sign_out">ออกจากระบบ</string>
     <string name="signed_in">ลงชื่อเข้าใช้แล้ว</string>
@@ -63,7 +63,7 @@
     <string name="artists">ศิลปิน</string>
     <string name="albums">อัลบั้ม</string>
     <string name="no_album_metadata">ไม่มีแทร็กใดระบุว่ามาจากอัลบั้มไหน</string>
-    <string name="search_empty">ค้นหาเพลงหลายล้านเพลงบน YouTube Music</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="recent_searches">การค้นหาล่าสุด</string>
     <string name="clear">ล้าง</string>
     <string name="search_hint">ศิลปิน เพลง เนื้อเพลง และอื่น ๆ</string>
@@ -345,7 +345,7 @@
     <string name="wifi_only_download_refusal">การดาวน์โหลดจำกัดไว้เฉพาะ Wi-Fi ปิดการตั้งค่านี้เพื่อใช้เน็ตมือถือ</string>
     <string name="pinned_playlist_limit">ปักหมุดได้สูงสุด %1$d เพลย์ลิสต์</string>
     <string name="downloaded_playlist">เพลย์ลิสต์ที่ดาวน์โหลดไว้</string>
-    <string name="library_sign_in_description">ลงชื่อเข้าใช้บัญชี Google เพื่อดูเพลงที่ถูกใจ เพลย์ลิสต์ และประวัติ YouTube Music ของคุณ</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="downloads_progress">การดาวน์โหลด · %1$d%%</string>
     <string name="downloads_finished">การดาวน์โหลด · เสร็จสิ้น</string>
     <string name="downloading_progress">กำลังดาวน์โหลด · %1$d%%</string>
@@ -355,7 +355,7 @@
     <string name="saved_to_bitchord_folder">บันทึกลง Music/BitChord แล้ว</string>
     <string name="nothing_downloading">ไม่มีการดาวน์โหลด</string>
     <string name="nothing_to_explore">ยังไม่มีอะไรให้สำรวจตอนนี้</string>
-    <string name="no_youtube_music_results">ไม่มีผลลัพธ์จาก YouTube Music</string>
+    <string name="no_youtube_music_results">No results on your server</string>
     <string name="library_empty">ยังไม่มีอะไรในคลังเพลงของคุณ</string>
     <string name="history_sign_in_required">ลงชื่อเข้าใช้เพื่อดูสิ่งที่คุณเคยฟัง</string>
     <string name="history_empty">ยังไม่มีการเล่นเพลง</string>
@@ -363,7 +363,7 @@
     <string name="downloaded_playlist_empty">ไม่มีเพลงจากเพลย์ลิสต์นี้เหลืออยู่ในอุปกรณ์นี้</string>
     <string name="no_local_audio_found">ไม่พบไฟล์เสียงในอุปกรณ์นี้</string>
     <string name="no_internet_connection">ไม่มีการเชื่อมต่ออินเทอร์เน็ต</string>
-    <string name="youtube_request_rejected">YouTube Music ปฏิเสธคำขอ ลองลงชื่อเข้าใช้อีกครั้ง</string>
+    <string name="youtube_request_rejected">Your server rejected the request. Try signing in again.</string>
     <string name="something_went_wrong">เกิดข้อผิดพลาดบางอย่าง</string>
     <string name="unknown_artist">ศิลปินที่ไม่ทราบชื่อ</string>
     <plurals name="downloads_failed_count">
@@ -452,7 +452,7 @@
     <string name="rich_presence_footer">แสดงสิ่งที่คุณกำลังเล่นบนโปรไฟล์ Discord ของคุณ</string>
     <string name="save_name">บันทึกชื่อ</string>
     <string name="saved_to_downloads">บันทึกลงการดาวน์โหลดแล้ว</string>
-    <string name="saved_to_youtube_music_account">บันทึกลงบัญชี YouTube Music ของคุณแล้ว</string>
+    <string name="saved_to_youtube_music_account">Saved to your server</string>
     <string name="scrobble_delay">ความล่าช้าในการสโครบเบิล</string>
     <string name="scrobble_delay_subtitle">เล่นเพลงไปถึงจุดไหนแล้วจึงสโครบเบิล</string>
     <string name="scrobble_timing">จังหวะเวลาสโครบเบิล</string>
@@ -662,8 +662,8 @@
     <string name="swipe_plays_next">การปัดเพลงจะเล่นเพลงนั้นต่อไป</string>
     <string name="swipe_adds_to_queue">เมื่อปิด การปัดจะเพิ่มเพลงไปที่ท้ายคิวแทน</string>
     <string name="import_backup_warning">การดำเนินการนี้จะแทนที่การตั้งค่าและประวัติการฟังของอุปกรณ์นี้ด้วยเนื้อหาในไฟล์ ส่งออกข้อมูลปัจจุบันก่อนหากต้องการเก็บไว้</string>
-    <string name="youtube_music_account">บัญชี YouTube Music</string>
-    <string name="tap_to_sign_in_google">แตะเพื่อลงชื่อเข้าใช้ด้วย Google</string>
+    <string name="youtube_music_account">Music server</string>
+    <string name="tap_to_sign_in_google">Tap to connect your server</string>
     <string name="export_succeeded">ส่งออกการตั้งค่าและ %1$s แล้ว</string>
     <string name="export_failed">ส่งออกไม่สำเร็จ: %1$s</string>
     <string name="import_succeeded">นำเข้า %1$s จาก v%2$s แล้ว</string>
@@ -1265,14 +1265,14 @@
     <string name="lossless_output_permission">ตรวจสอบตัวแปลงสัญญาณ Bluetooth</string>
     <string name="lossless_output_permission_detail">อนุญาตอุปกรณ์ใกล้เคียงเพื่อให้หูฟัง LDAC หรือ LHDC ปลดล็อกส่วนเสริมแบบ lossless</string>
     <string name="cached_songs">เพลงในแคช</string>
-    <string name="cached_songs_subtitle">เพลงจาก YouTube และ JioSaavn ในแคชเพลง</string>
-    <string name="cached_songs_empty">ยังไม่มีเพลงในแคช เพลงที่คุณเล่นจาก YouTube หรือ JioSaavn จะแสดงที่นี่</string>
+    <string name="cached_songs_subtitle">Songs kept in the song cache</string>
+    <string name="cached_songs_empty">No cached songs yet. Songs you stream will show up here.</string>
     <string name="cached_song_partial">บางส่วน</string>
     <string name="remove_from_cache">นำออกจากแคช</string>
     <string name="cached_song_remove">นำออก</string>
     <string name="removed_from_cache">นำออกจากแคชเพลงแล้ว</string>
     <string name="show_cache_folder">แสดงโฟลเดอร์เพลงในแคช</string>
-    <string name="show_cache_folder_subtitle">เพิ่มโฟลเดอร์ในคลังเพลงที่มีเพลงจาก YouTube และ JioSaavn ที่เก็บไว้ในแคช</string>
+    <string name="show_cache_folder_subtitle">Adds a Cached songs folder to Library with the songs kept in the song cache</string>
     <string name="song_cache_unlimited">ไม่จำกัด</string>
     <string name="song_cache_unlimited_subtitle">ไม่มีขีดจำกัด เสียงในแคชอาจเพิ่มขึ้นจนพื้นที่จัดเก็บเต็ม</string>
     <string name="clear_song_cache_title">ล้างแคชเพลงใช่ไหม</string>
@@ -1329,14 +1329,14 @@
     <string name="replay_period_monthly">รายเดือน</string>
     <string name="replay_period_yearly">รายปี</string>
     <string name="replay_period_lifetime">ตลอดกาล</string>
-    <string name="onboarding_title">เพลงนับล้าน สตรีมบน BitChord</string>
+    <string name="onboarding_title">Your music, streamed on BitChord</string>
     <string name="onboarding_name_prompt">ให้เราเรียกคุณว่าอะไรดี</string>
     <string name="onboarding_name_hint">ชื่อของคุณ</string>
-    <string name="onboarding_name_footer">เพื่อน ๆ จะเห็นชื่อนี้เมื่อคุณฟังด้วยกัน คุณเปลี่ยนได้ภายหลังในการตั้งค่า</string>
+    <string name="onboarding_name_footer">You can change it later in Settings.</string>
     <string name="onboarding_next">ถัดไป</string>
-    <string name="onboarding_connect_title">เชื่อมต่อบัญชี YouTube ของคุณ</string>
-    <string name="onboarding_connect_body">นำคลัง เพลย์ลิสต์ และมิกซ์ของคุณมาด้วย แล้วเริ่มปาร์ตี้ฟังด้วยกันกับเพื่อน ๆ</string>
-    <string name="onboarding_sign_in_google">ลงชื่อเข้าใช้ด้วย Google</string>
+    <string name="onboarding_connect_title">Connect your music server</string>
+    <string name="onboarding_connect_body">Bring your library, playlists and starred songs from Navidrome or any Subsonic server.</string>
+    <string name="onboarding_sign_in_google">Connect a server</string>
     <string name="onboarding_skip_sign_in">ข้ามการลงชื่อเข้าใช้</string>
     <string name="onboarding_back">กลับ</string>
     <string name="wear_os_section">BitChord สำหรับ Wear OS</string>
@@ -1445,4 +1445,7 @@
     <string name="diwali_cta">Let\'s Celebrate</string>
     <string name="diwali_subtitle">May this festival of lights fill your home with joy and your days with music.</string>
     <string name="diwali_title">BitChord wishes you a Happy Diwali</string>
+    <!-- BitChord ND -->
+    <string name="nd_search_source_server">Server</string>
+    <string name="nd_sources_subtitle">WebDAV and SMB libraries</string>
 </resources>

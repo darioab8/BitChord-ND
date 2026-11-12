@@ -140,7 +140,7 @@
     <string name="downloaded">डाउनलोड किया गया</string>
     <string name="explore">एक्सप्लोर करें</string>
     <string name="library">लाइब्रेरी</string>
-    <string name="library_sign_in_description">अपने पसंदीदा गाने, प्लेलिस्ट और YouTube Music इतिहास देखने के लिए अपने Google खाते में साइन इन करें।</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="new_playlist">नई प्लेलिस्ट</string>
     <string name="on_device">डिवाइस पर</string>
     <string name="personalized_recommendations">अपने लिए पर्सनलाइज़्ड सुझाव पाएं</string>
@@ -154,9 +154,9 @@
     <string name="recent_searches">हाल की खोजें</string>
     <string name="replay_subtitle">आपके टॉप गाने, कलाकार, एल्बम और शैलियां</string>
     <string name="retry">फिर कोशिश करें</string>
-    <string name="saved_to_youtube_music">YouTube Music में सेव की गई</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="search">खोजें</string>
-    <string name="search_empty">YouTube Music पर लाखों गाने खोजें।</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="search_hint">कलाकार, गाने, लिरिक्स और बहुत कुछ</string>
     <string name="selected">चयनित</string>
     <string name="share">शेयर करें</string>
@@ -187,7 +187,7 @@
     <string name="shelf_youtube_charts">YouTube चार्ट्स</string>
     <string name="show_all">सभी देखें</string>
     <string name="sign_in">साइन इन करें</string>
-    <string name="sign_in_youtube_music">YouTube Music में साइन इन करें</string>
+    <string name="sign_in_youtube_music">Connect your music server</string>
     <string name="subscriptions">सदस्यताएं</string>
     <string name="your_replay">आपका Replay</string>
     <string name="your_listening_experience">आपका सुनने का अनुभव</string>

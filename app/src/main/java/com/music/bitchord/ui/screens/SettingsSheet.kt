@@ -1,5 +1,6 @@
 package com.music.bitchord.ui.screens
 
+import com.music.bitchord.data.NdFeatures
 import com.music.bitchord.ui.icons.SfIcons
 import com.music.bitchord.wear.WatchInstaller
 import android.content.Context
@@ -486,7 +487,7 @@ fun SettingsScreen(
                 // five signed-in people, and being signed in is the whole of what
                 // the row needs before it will do anything.
                 val listenTogetherTitle = stringResource(R.string.listen_together)
-                row(listenTogetherTitle, "jam", "party", "sync", "friends") {
+                if (NdFeatures.YOUTUBE) row(listenTogetherTitle, "jam", "party", "sync", "friends") {
                     SettingsRow(
                         icon = SfIcons.Groups,
                         title = listenTogetherTitle,
@@ -507,7 +508,9 @@ fun SettingsScreen(
             // [SourceResolver.requestForNow][com.music.bitchord.data.sources.SourceResolver.requestForNow].
             SearchableSettingsGroup(search, header = stringResource(R.string.audio_quality)) {
                 val sourceTitle = stringResource(R.string.source)
-                val sourceSubtitle = stringResource(R.string.sources_subtitle)
+                val sourceSubtitle = stringResource(
+                    if (NdFeatures.YOUTUBE) R.string.sources_subtitle else R.string.nd_sources_subtitle,
+                )
                 row(sourceTitle, sourceSubtitle, "addon", "lossless") {
                     SettingsRow(
                         icon = SfIcons.Extension,
@@ -520,7 +523,7 @@ fun SettingsScreen(
                 // being a setting of its own, so it reads as part of Sources.
                 val directSourceTitle = stringResource(R.string.direct_source_stream)
                 // Drawn like the animated-cover cellular line: no icon, no divider.
-                row(directSourceTitle, "addon", "direct", "prefetch", "read-ahead", divided = false) {
+                if (NdFeatures.YOUTUBE) row(directSourceTitle, "addon", "direct", "prefetch", "read-ahead", divided = false) {
                     // Off for the length of a party: holding every fetch until a
                     // track is about to play would leave this phone behind the
                     // others at each sync — see [DirectSourceGate.isActive].
@@ -910,7 +913,7 @@ fun SettingsScreen(
 
         if (shows(SettingsCategory.CONTENT_PREFERENCES)) SearchableSettingsGroup(search, header = stringResource(R.string.content_preferences)) {
             val preferMusicOnlyTitle = stringResource(R.string.prefer_music_only)
-            row(preferMusicOnlyTitle, "video", "audio", "music video", "convert", "song") {
+            if (NdFeatures.YOUTUBE) row(preferMusicOnlyTitle, "video", "audio", "music video", "convert", "song") {
                 SettingsRow(
                     icon = SfIcons.Video,
                     title = preferMusicOnlyTitle,
@@ -925,7 +928,7 @@ fun SettingsScreen(
                 )
             }
             val hideRecentsTitle = stringResource(R.string.hide_recents)
-            row(hideRecentsTitle, "recents", "recent", "history", "feed", "home") {
+            if (NdFeatures.YOUTUBE) row(hideRecentsTitle, "recents", "recent", "history", "feed", "home") {
                 SettingsRow(
                     icon = SfIcons.VisibilityOff,
                     title = hideRecentsTitle,
@@ -939,7 +942,7 @@ fun SettingsScreen(
                 )
             }
             val hideHomeVideosTitle = stringResource(R.string.hide_home_videos)
-            row(hideHomeVideosTitle, "video", "music video", "feed", "home") {
+            if (NdFeatures.YOUTUBE) row(hideHomeVideosTitle, "video", "music video", "feed", "home") {
                 SettingsRow(
                     icon = SfIcons.VisibilityOff,
                     title = hideHomeVideosTitle,
@@ -954,7 +957,7 @@ fun SettingsScreen(
                 )
             }
             val hideTopPicksTitle = stringResource(R.string.hide_top_picks)
-            row(hideTopPicksTitle, "top picks", "recommendations", "feed", "home") {
+            if (NdFeatures.YOUTUBE) row(hideTopPicksTitle, "top picks", "recommendations", "feed", "home") {
                 SettingsRow(
                     icon = SfIcons.AutoAwesome,
                     title = hideTopPicksTitle,
@@ -968,7 +971,7 @@ fun SettingsScreen(
                 )
             }
             val hideHomeMoodsTitle = stringResource(R.string.hide_home_moods)
-            row(hideHomeMoodsTitle, "mood", "moods", "find your mood", "feed", "home") {
+            if (NdFeatures.YOUTUBE) row(hideHomeMoodsTitle, "mood", "moods", "find your mood", "feed", "home") {
                 SettingsRow(
                     icon = SfIcons.Star,
                     title = hideHomeMoodsTitle,
@@ -982,7 +985,7 @@ fun SettingsScreen(
                 )
             }
             val squareVideoThumbnailsTitle = stringResource(R.string.square_video_thumbnails)
-            row(squareVideoThumbnailsTitle, "video", "thumbnail", "cover", "artwork", "player") {
+            if (NdFeatures.YOUTUBE) row(squareVideoThumbnailsTitle, "video", "thumbnail", "cover", "artwork", "player") {
                 SettingsRow(
                     icon = SfIcons.Apps,
                     title = squareVideoThumbnailsTitle,
@@ -1613,7 +1616,7 @@ fun SettingsScreen(
                 )
             }
             val listenTogetherButtonTitle = stringResource(R.string.show_listen_together_button)
-            row(listenTogetherButtonTitle, "party", "jam", "output", "headphones", "player") {
+            if (NdFeatures.YOUTUBE) row(listenTogetherButtonTitle, "party", "jam", "output", "headphones", "player") {
                 SettingsRow(
                     icon = SfIcons.Groups,
                     title = listenTogetherButtonTitle,
@@ -1673,7 +1676,7 @@ fun SettingsScreen(
                 )
             }
             val smartAlignmentTitle = stringResource(R.string.smart_version_alignment)
-            row(smartAlignmentTitle, "alignment", "sync", "waveform", "video", "audio", "skit", "intro") {
+            if (NdFeatures.YOUTUBE) row(smartAlignmentTitle, "alignment", "sync", "waveform", "video", "audio", "skit", "intro") {
                 SettingsRow(
                     icon = SfIcons.GraphicEq,
                     title = smartAlignmentTitle,

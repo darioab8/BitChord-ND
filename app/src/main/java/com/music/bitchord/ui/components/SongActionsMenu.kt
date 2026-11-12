@@ -1,5 +1,6 @@
 package com.music.bitchord.ui.components
 
+import com.music.bitchord.data.NdFeatures
 import com.music.bitchord.ui.icons.BrokenHeart
 import com.music.bitchord.ui.icons.SfIcons
 import com.music.bitchord.ui.components.trackArtSize
@@ -223,7 +224,8 @@ fun SongActionsMenu(
                 }
                 // No dislike for a device file: there is no recommendation
                 // feed on the device for one to steer.
-                if (signedIn && !isOffline) {
+                // BitChord ND: Subsonic has stars, no dislike.
+                if (signedIn && !isOffline && NdFeatures.YOUTUBE) {
                     IosMenuQuickAction(
                         icon = if (disliked) BrokenHeart.Fill else BrokenHeart.Outline,
                         label = stringResource(R.string.dislike),
@@ -246,7 +248,10 @@ fun SongActionsMenu(
         // a substituted copy, the other for a track held on YouTube's own —
         // and between them they are the whole of the choice, which is why they
         // sit in the same group.
-        if (onRollbackToOriginal != null || onUpgradeQuality != null || onToggleAudioVersion != null) {
+        // BitChord ND: one recording per song on the server — nothing to swap.
+        if (NdFeatures.YOUTUBE &&
+            (onRollbackToOriginal != null || onUpgradeQuality != null || onToggleAudioVersion != null)
+        ) {
             if (startsGroup()) IosMenuSeparator()
             (onRollbackToOriginal ?: onUpgradeQuality)?.let {
                 ActionRow(

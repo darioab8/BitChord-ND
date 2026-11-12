@@ -1,6 +1,7 @@
 package com.music.bitchord.ui
 
 import com.music.bitchord.data.Catalog
+import com.music.bitchord.data.NdFeatures
 import com.music.bitchord.auth.SubsonicSession
 import com.music.bitchord.data.subsonic.SubsonicIds
 import com.music.bitchord.data.SearchPage
@@ -1517,7 +1518,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             // A leftover APK only means "Install Now" for the session that
             // downloaded it — see AppUpdateChecker.clearCache.
             AppUpdateChecker.clearCache(getApplication())
-            AppUpdateChecker.check()
+            // BitChord ND: upstream's checker would offer upstream's APK.
+            if (NdFeatures.YOUTUBE) AppUpdateChecker.check()
         }
     }
 
@@ -1771,6 +1773,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
      */
     private fun loadTopPicks(identity: String?, rebuild: Boolean) {
         topPicksJob?.cancel()
+        if (!NdFeatures.YOUTUBE) {
+            // BitChord ND: Top Picks is built from YouTube's recommendations.
+            _topPicks.value = emptyList()
+            _topPicksLoading.value = false
+            return
+        }
         val file = File(getApplication<Application>().filesDir, TOP_PICKS_FILE)
         val slot = topPicksSlot()
         topPicksJob = viewModelScope.launch {

@@ -140,7 +140,7 @@
     <string name="downloaded">ดาวน์โหลดแล้ว</string>
     <string name="explore">สำรวจ</string>
     <string name="library">คลังเพลง</string>
-    <string name="library_sign_in_description">ลงชื่อเข้าใช้บัญชี Google เพื่อดูเพลงที่ถูกใจ เพลย์ลิสต์ และประวัติ YouTube Music ของคุณ</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="new_playlist">เพลย์ลิสต์ใหม่</string>
     <string name="on_device">ในอุปกรณ์</string>
     <string name="personalized_recommendations">รับคำแนะนำที่ปรับให้เหมาะกับคุณ</string>
@@ -154,9 +154,9 @@
     <string name="recent_searches">การค้นหาล่าสุด</string>
     <string name="replay_subtitle">เพลง ศิลปิน อัลบั้ม และแนวเพลงยอดนิยมของคุณ</string>
     <string name="retry">ลองใหม่</string>
-    <string name="saved_to_youtube_music">บันทึกลง YouTube Music แล้ว</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="search">ค้นหา</string>
-    <string name="search_empty">ค้นหาเพลงหลายล้านเพลงบน YouTube Music</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="search_hint">ศิลปิน เพลง เนื้อเพลง และอื่น ๆ</string>
     <string name="selected">เลือกแล้ว</string>
     <string name="share">แชร์</string>
@@ -187,7 +187,7 @@
     <string name="shelf_youtube_charts">YouTube Charts</string>
     <string name="show_all">แสดงทั้งหมด</string>
     <string name="sign_in">ลงชื่อเข้าใช้</string>
-    <string name="sign_in_youtube_music">ลงชื่อเข้าใช้ YouTube Music</string>
+    <string name="sign_in_youtube_music">Connect your music server</string>
     <string name="subscriptions">Subscriptions</string>
     <string name="your_replay">Replay ของคุณ</string>
     <string name="your_listening_experience">ประสบการณ์การฟังของคุณ</string>

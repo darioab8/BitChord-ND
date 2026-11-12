@@ -140,7 +140,7 @@
     <string name="downloaded">Загружено</string>
     <string name="explore">Обзор</string>
     <string name="library">Библиотека</string>
-    <string name="library_sign_in_description">Войдите в свой аккаунт Google, чтобы видеть понравившиеся песни, плейлисты и историю YouTube Music.</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="new_playlist">Новый плейлист</string>
     <string name="on_device">На устройстве</string>
     <string name="personalized_recommendations">Получайте персональные рекомендации</string>
@@ -154,9 +154,9 @@
     <string name="recent_searches">Недавние запросы</string>
     <string name="replay_subtitle">Ваши любимые песни, исполнители, альбомы и жанры</string>
     <string name="retry">Повторить</string>
-    <string name="saved_to_youtube_music">Сохранено в YouTube Music</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="search">Поиск</string>
-    <string name="search_empty">Ищите миллионы песен на YouTube Music.</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="search_hint">Исполнители, песни, тексты и многое другое</string>
     <string name="selected">Выбрано</string>
     <string name="share">Поделиться</string>
@@ -187,7 +187,7 @@
     <string name="shelf_youtube_charts">Чарты YouTube</string>
     <string name="show_all">Показать все</string>
     <string name="sign_in">Войти</string>
-    <string name="sign_in_youtube_music">Войти в YouTube Music</string>
+    <string name="sign_in_youtube_music">Connect your music server</string>
     <string name="subscriptions">Подписки</string>
     <string name="your_replay">Ваш Replay</string>
     <string name="your_listening_experience">Ваш опыт прослушивания</string>

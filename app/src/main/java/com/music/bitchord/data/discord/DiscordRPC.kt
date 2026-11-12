@@ -149,16 +149,25 @@ class DiscordRPC(
         context.getString(R.string.app_name).removeSuffix(" Dev")
 
     companion object {
-        const val PROJECT_URL = "https://github.com/kushagrasinghx/BitChord"
+        const val PROJECT_URL = "https://github.com/darioab8/BitChord-ND"
 
-        const val DEFAULT_BUTTON_1 = "Listen on YouTube Music"
-        const val DEFAULT_BUTTON_2 = "Visit BitChord"
+        const val DEFAULT_BUTTON_1 = "Find this song"
+        const val DEFAULT_BUTTON_2 = "Visit BitChord ND"
 
         /** Discord draws the sleeve at roughly 96dp; 480px covers it on any density. */
         private const val ART_PX = 480
 
         fun watchUrl(song: Song): String =
-            "https://music.youtube.com/watch?v=${song.videoId}"
+            // BitChord ND: a server song has no public page; Last.fm's has the
+            // track for almost anything, and needs no account to open.
+            if (com.music.bitchord.data.subsonic.SubsonicIds.isSubsonic(song.videoId)) {
+                "https://www.last.fm/music/" + lastFmPart(song.artist) + "/_/" + lastFmPart(song.title)
+            } else {
+                "https://music.youtube.com/watch?v=${song.videoId}"
+            }
+
+        private fun lastFmPart(s: String): String =
+            java.net.URLEncoder.encode(s.ifBlank { "Unknown" }, Charsets.UTF_8).replace("%2F", "%252F")
 
         /**
          * Resolves template variables in text.

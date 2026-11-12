@@ -33,7 +33,7 @@
     <string name="on_device">Trên thiết bị</string>
     <string name="playlists">Danh sách phát</string>
     <string name="new_playlist">Danh sách phát mới</string>
-    <string name="saved_to_youtube_music">Đã lưu vào YouTube Music</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="sign_in">Đăng nhập</string>
     <string name="sign_out">Đăng xuất</string>
     <string name="signed_in">Đã đăng nhập</string>
@@ -66,7 +66,7 @@
     <string name="artists">Nghệ sĩ</string>
     <string name="albums">Album</string>
     <string name="no_album_metadata">Không có thông tin album cho các bản nhạc này.</string>
-    <string name="search_empty">Tìm kiếm hàng triệu bài hát trên YouTube Music.</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="recent_searches">Tìm kiếm gần đây</string>
     <string name="clear">Xóa</string>
     <string name="search_hint">Nghệ sĩ, bài hát, lời bài hát và hơn thế nữa</string>
@@ -365,7 +365,7 @@
     <string name="wifi_only_download_refusal">Tải xuống đang bị giới hạn chỉ qua Wi-Fi. Hãy tắt tùy chọn đó trong Cài đặt để sử dụng dữ liệu di động.</string>
     <string name="pinned_playlist_limit">Chỉ có thể ghim tối đa %1$d danh sách phát</string>
     <string name="downloaded_playlist">Danh sách phát đã tải</string>
-    <string name="library_sign_in_description">Đăng nhập vào tài khoản Google của bạn để xem các bài hát đã thích, danh sách phát và lịch sử YouTube Music.</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="downloads_progress">Tải xuống · %1$d%%</string>
     <string name="downloads_finished">Tải xuống · hoàn tất</string>
     <string name="downloading_progress">Đang tải xuống · %1$d%%</string>
@@ -375,7 +375,7 @@
     <string name="saved_to_bitchord_folder">Đã lưu vào Music/BitChord</string>
     <string name="nothing_downloading">Không có nội dung đang tải</string>
     <string name="nothing_to_explore">Hiện không có gì để khám phá</string>
-    <string name="no_youtube_music_results">Không có kết quả nào từ YouTube Music</string>
+    <string name="no_youtube_music_results">No results on your server</string>
     <string name="library_empty">Chưa có gì trong thư viện của bạn</string>
     <string name="history_sign_in_required">Đăng nhập để xem những gì bạn đã nghe gần đây</string>
     <string name="history_empty">Chưa phát bài nào</string>
@@ -383,7 +383,7 @@
     <string name="downloaded_playlist_empty">Không còn nội dung nào từ danh sách phát này trên thiết bị</string>
     <string name="no_local_audio_found">Không tìm thấy tệp âm thanh nào trên thiết bị</string>
     <string name="no_internet_connection">Không có kết nối internet</string>
-    <string name="youtube_request_rejected">YouTube Music đã từ chối yêu cầu. Hãy thử đăng nhập lại.</string>
+    <string name="youtube_request_rejected">Your server rejected the request. Try signing in again.</string>
     <string name="something_went_wrong">Đã xảy ra lỗi</string>
     <string name="unknown_artist">Nghệ sĩ không xác định</string>
     <plurals name="downloads_failed_count">
@@ -473,7 +473,7 @@
     <string name="rich_presence_footer">Hiển thị những gì bạn đang nghe trên hồ sơ Discord của bạn.</string>
     <string name="save_name">Lưu tên</string>
     <string name="saved_to_downloads">Đã lưu vào mục Tải xuống</string>
-    <string name="saved_to_youtube_music_account">Đã lưu vào tài khoản YouTube Music của bạn</string>
+    <string name="saved_to_youtube_music_account">Saved to your server</string>
     <string name="scrobble_delay">Độ trễ scrobble</string>
     <string name="scrobble_delay_subtitle">Thời gian bài hát phát được bao lâu thì scrobble</string>
     <string name="scrobble_timing">Thời điểm scrobble</string>
@@ -681,8 +681,8 @@
     <string name="swipe_plays_next">Vuốt bài hát để phát tiếp theo</string>
     <string name="swipe_adds_to_queue">Khi tắt, vuốt sẽ thêm bài hát vào cuối hàng đợi</string>
     <string name="import_backup_warning">Thao tác này sẽ thay thế cài đặt và lịch sử nghe trên thiết bị bằng nội dung của tệp sao lưu. Hãy xuất dữ liệu hiện tại trước nếu bạn muốn giữ lại.</string>
-    <string name="youtube_music_account">Tài khoản YouTube Music</string>
-    <string name="tap_to_sign_in_google">Nhấn để đăng nhập bằng Google</string>
+    <string name="youtube_music_account">Music server</string>
+    <string name="tap_to_sign_in_google">Tap to connect your server</string>
     <string name="export_succeeded">Đã xuất cài đặt và %1$s</string>
     <string name="export_failed">Xuất dữ liệu thất bại: %1$s</string>
     <string name="import_succeeded">Đã nhập %1$s từ v%2$s</string>
@@ -1199,14 +1199,14 @@
     <string name="lossless_output_permission">Kiểm tra codec Bluetooth</string>
     <string name="lossless_output_permission_detail">Cho phép Thiết bị lân cận để tai nghe LDAC hoặc LHDC mở khóa addon lossless</string>
     <string name="cached_songs">Bài hát đã lưu bộ nhớ đệm</string>
-    <string name="cached_songs_subtitle">Bài hát từ YouTube và JioSaavn trong bộ nhớ đệm</string>
-    <string name="cached_songs_empty">Chưa có bài hát nào trong bộ nhớ đệm. Bài hát bạn phát từ YouTube hoặc JioSaavn sẽ hiện ở đây.</string>
+    <string name="cached_songs_subtitle">Songs kept in the song cache</string>
+    <string name="cached_songs_empty">No cached songs yet. Songs you stream will show up here.</string>
     <string name="cached_song_partial">Một phần</string>
     <string name="remove_from_cache">Xóa khỏi bộ nhớ đệm</string>
     <string name="cached_song_remove">Xóa</string>
     <string name="removed_from_cache">Đã xóa khỏi bộ nhớ đệm bài hát</string>
     <string name="show_cache_folder">Hiện thư mục bài hát trong bộ nhớ đệm</string>
-    <string name="show_cache_folder_subtitle">Thêm vào Thư viện một thư mục chứa các bài hát YouTube và JioSaavn được lưu trong bộ nhớ đệm</string>
+    <string name="show_cache_folder_subtitle">Adds a Cached songs folder to Library with the songs kept in the song cache</string>
     <string name="song_cache_unlimited">Không giới hạn</string>
     <string name="song_cache_unlimited_subtitle">Không giới hạn. Âm thanh trong bộ nhớ đệm có thể tăng cho đến khi đầy bộ nhớ.</string>
     <string name="clear_song_cache_title">Xóa bộ nhớ đệm bài hát?</string>
@@ -1263,14 +1263,14 @@
     <string name="replay_period_monthly">Tháng</string>
     <string name="replay_period_yearly">Năm</string>
     <string name="replay_period_lifetime">Mọi lúc</string>
-    <string name="onboarding_title">Hàng triệu bài hát, phát trực tuyến trên BitChord</string>
+    <string name="onboarding_title">Your music, streamed on BitChord</string>
     <string name="onboarding_name_prompt">Chúng tôi nên gọi bạn là gì?</string>
     <string name="onboarding_name_hint">Tên của bạn</string>
-    <string name="onboarding_name_footer">Bạn bè sẽ thấy tên này khi bạn dùng Nghe cùng nhau. Bạn có thể đổi sau trong Cài đặt.</string>
+    <string name="onboarding_name_footer">You can change it later in Settings.</string>
     <string name="onboarding_next">Tiếp</string>
-    <string name="onboarding_connect_title">Kết nối tài khoản YouTube của bạn</string>
-    <string name="onboarding_connect_body">Mang theo thư viện, danh sách phát và mix của bạn, rồi bắt đầu buổi Nghe cùng nhau với bạn bè.</string>
-    <string name="onboarding_sign_in_google">Đăng nhập bằng Google</string>
+    <string name="onboarding_connect_title">Connect your music server</string>
+    <string name="onboarding_connect_body">Bring your library, playlists and starred songs from Navidrome or any Subsonic server.</string>
+    <string name="onboarding_sign_in_google">Connect a server</string>
     <string name="onboarding_skip_sign_in">Bỏ qua đăng nhập</string>
     <string name="onboarding_back">Quay lại</string>
     <string name="wear_os_section">BitChord cho Wear OS</string>
@@ -1379,4 +1379,7 @@
     <string name="diwali_cta">Let\'s Celebrate</string>
     <string name="diwali_subtitle">May this festival of lights fill your home with joy and your days with music.</string>
     <string name="diwali_title">BitChord wishes you a Happy Diwali</string>
+    <!-- BitChord ND -->
+    <string name="nd_search_source_server">Server</string>
+    <string name="nd_sources_subtitle">WebDAV and SMB libraries</string>
 </resources>

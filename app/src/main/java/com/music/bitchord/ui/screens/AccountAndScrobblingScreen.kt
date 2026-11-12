@@ -1,5 +1,6 @@
 package com.music.bitchord.ui.screens
 
+import com.music.bitchord.data.NdFeatures
 import com.music.bitchord.ui.icons.SfIcons
 import com.music.bitchord.auth.clearSpotifyWebSession
 import androidx.compose.foundation.layout.Column
@@ -78,19 +79,19 @@ fun AccountAndScrobblingScreen(
         // One card: who is signed in, which profile is listening, and the way
         // out, with the explanation of profiles underneath.
         SettingsGroup(
-            footer = if (signedIn) stringResource(R.string.account_profiles_help) else null,
+            footer = if (signedIn && NdFeatures.YOUTUBE) stringResource(R.string.account_profiles_help) else null,
             topSpacing = 0.dp,
         ) {
             AccountCard(
                 signedIn = signedIn,
                 account = account,
                 onSignIn = onSignIn,
-                onClick = onSwitchChannel,
+                onClick = onSwitchChannel.takeIf { NdFeatures.YOUTUBE },
                 grouped = true,
             )
             if (signedIn) {
-                FullWidthDivider()
-                SettingsRow(
+                if (NdFeatures.YOUTUBE) FullWidthDivider()
+                if (NdFeatures.YOUTUBE) SettingsRow(
                     icon = SfIcons.SwitchAccount,
                     title = stringResource(R.string.listen_as),
                     subtitle = channelName ?: stringResource(R.string.default_youtube_profile),
@@ -101,7 +102,7 @@ fun AccountAndScrobblingScreen(
             }
         }
 
-        SettingsGroup(
+        if (NdFeatures.YOUTUBE) SettingsGroup(
             header = stringResource(R.string.spotify),
             footer = stringResource(R.string.spotify_connect_subtitle),
         ) {

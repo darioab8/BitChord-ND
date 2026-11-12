@@ -35,7 +35,7 @@
     <string name="on_device">На устройстве</string>
     <string name="playlists">Плейлисты</string>
     <string name="new_playlist">Новый плейлист</string>
-    <string name="saved_to_youtube_music">Сохранено в YouTube Music</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="sign_in">Войти</string>
     <string name="sign_out">Выйти</string>
     <string name="signed_in">Вход выполнен</string>
@@ -72,7 +72,7 @@
     <string name="artists">Исполнители</string>
     <string name="albums">Альбомы</string>
     <string name="no_album_metadata">Ни один из этих треков не указывает свой альбом.</string>
-    <string name="search_empty">Ищите миллионы песен на YouTube Music.</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="recent_searches">Недавние запросы</string>
     <string name="clear">Очистить</string>
     <string name="search_hint">Исполнители, песни, тексты и многое другое</string>
@@ -336,7 +336,7 @@
     <string name="wifi_only_download_refusal">Загрузки ограничены сетью Wi-Fi. Отключите это в настройках, чтобы использовать мобильные данные.</string>
     <string name="pinned_playlist_limit">Можно закрепить не более %1$d плейлистов</string>
     <string name="downloaded_playlist">Загруженный плейлист</string>
-    <string name="library_sign_in_description">Войдите в свой аккаунт Google, чтобы видеть понравившиеся песни, плейлисты и историю YouTube Music.</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="downloads_progress">Загрузки · %1$d%%</string>
     <string name="downloads_finished">Загрузки · завершено</string>
     <string name="downloading_progress">Загрузка · %1$d%%</string>
@@ -344,7 +344,7 @@
     <string name="saved_to_bitchord_folder">Сохранено в Музыка/BitChord</string>
     <string name="nothing_downloading">Ничего не загружается</string>
     <string name="nothing_to_explore">Сейчас нечего смотреть в обзоре</string>
-    <string name="no_youtube_music_results">Нет результатов из YouTube Music</string>
+    <string name="no_youtube_music_results">No results on your server</string>
     <string name="library_empty">В библиотеке пока ничего нет</string>
     <string name="history_sign_in_required">Войдите, чтобы увидеть, что вы слушали</string>
     <string name="history_empty">Пока ничего не воспроизводилось</string>
@@ -352,7 +352,7 @@
     <string name="downloaded_playlist_empty">На этом устройстве не осталось ничего из этого плейлиста</string>
     <string name="no_local_audio_found">На этом устройстве не найдено аудиофайлов</string>
     <string name="no_internet_connection">Нет подключения к интернету</string>
-    <string name="youtube_request_rejected">YouTube Music отклонил запрос. Попробуйте войти снова.</string>
+    <string name="youtube_request_rejected">Your server rejected the request. Try signing in again.</string>
     <string name="something_went_wrong">Что-то пошло не так</string>
     <string name="unknown_artist">Неизвестный исполнитель</string>
     <plurals name="downloads_failed_count">
@@ -457,7 +457,7 @@
     <string name="rich_presence_footer">Показывать, что вы слушаете, в вашем профиле Discord.</string>
     <string name="save_name">Сохранить название</string>
     <string name="saved_to_downloads">Сохранено в Загрузки</string>
-    <string name="saved_to_youtube_music_account">Сохранено в вашем аккаунте YouTube Music</string>
+    <string name="saved_to_youtube_music_account">Saved to your server</string>
     <string name="scrobble_delay">Задержка скробблинга</string>
     <string name="scrobble_delay_subtitle">Насколько далеко в песню скробблить</string>
     <string name="scrobble_timing">Время скробблинга</string>
@@ -677,8 +677,8 @@
     <string name="swipe_plays_next">Свайп песни ставит её следующей</string>
     <string name="swipe_adds_to_queue">Если отключено, свайп добавляет песню в конец очереди</string>
     <string name="import_backup_warning">Это заменит настройки и историю прослушивания на этом устройстве содержимым файла. Сначала экспортируйте текущие данные, если хотите их сохранить.</string>
-    <string name="youtube_music_account">Аккаунт YouTube Music</string>
-    <string name="tap_to_sign_in_google">Нажмите, чтобы войти через Google</string>
+    <string name="youtube_music_account">Music server</string>
+    <string name="tap_to_sign_in_google">Tap to connect your server</string>
     <string name="export_succeeded">Экспортированы настройки и %1$s</string>
     <string name="export_failed">Ошибка экспорта: %1$s</string>
     <string name="import_succeeded">Импортировано %1$s из v%2$s</string>
@@ -1314,14 +1314,14 @@
     <string name="lossless_output_permission">Проверить Bluetooth-кодек</string>
     <string name="lossless_output_permission_detail">Разрешите доступ к устройствам поблизости, чтобы наушники LDAC или LHDC открыли аддоны без потерь</string>
     <string name="cached_songs">Кэшированные треки</string>
-    <string name="cached_songs_subtitle">Треки из YouTube и JioSaavn в кэше треков</string>
-    <string name="cached_songs_empty">Кэшированных треков пока нет. Здесь появятся треки, которые вы слушаете из YouTube или JioSaavn.</string>
+    <string name="cached_songs_subtitle">Songs kept in the song cache</string>
+    <string name="cached_songs_empty">No cached songs yet. Songs you stream will show up here.</string>
     <string name="cached_song_partial">Частично</string>
     <string name="remove_from_cache">Удалить из кеша</string>
     <string name="cached_song_remove">Удалить</string>
     <string name="removed_from_cache">Удалено из кеша треков</string>
     <string name="show_cache_folder">Показывать папку кэшированных треков</string>
-    <string name="show_cache_folder_subtitle">Добавляет в Библиотеку папку с треками из YouTube и JioSaavn, сохранёнными в кэше</string>
+    <string name="show_cache_folder_subtitle">Adds a Cached songs folder to Library with the songs kept in the song cache</string>
     <string name="song_cache_unlimited">Без ограничений</string>
     <string name="song_cache_unlimited_subtitle">Без ограничений. Кэшированное аудио может расти, пока не заполнится память.</string>
     <string name="clear_song_cache_title">Очистить кэш треков?</string>
@@ -1378,14 +1378,14 @@
     <string name="replay_period_monthly">Месяц</string>
     <string name="replay_period_yearly">Год</string>
     <string name="replay_period_lifetime">Всё время</string>
-    <string name="onboarding_title">Миллионы треков в BitChord</string>
+    <string name="onboarding_title">Your music, streamed on BitChord</string>
     <string name="onboarding_name_prompt">Как к вам обращаться?</string>
     <string name="onboarding_name_hint">Ваше имя</string>
-    <string name="onboarding_name_footer">Друзья увидят его в режиме «Слушать вместе». Позже вы сможете изменить его в Настройках.</string>
+    <string name="onboarding_name_footer">You can change it later in Settings.</string>
     <string name="onboarding_next">Далее</string>
-    <string name="onboarding_connect_title">Подключите аккаунт YouTube</string>
-    <string name="onboarding_connect_body">Перенесите свою библиотеку, плейлисты и миксы и устройте сессию «Слушать вместе» с друзьями.</string>
-    <string name="onboarding_sign_in_google">Войти через Google</string>
+    <string name="onboarding_connect_title">Connect your music server</string>
+    <string name="onboarding_connect_body">Bring your library, playlists and starred songs from Navidrome or any Subsonic server.</string>
+    <string name="onboarding_sign_in_google">Connect a server</string>
     <string name="onboarding_skip_sign_in">Пропустить вход</string>
     <string name="onboarding_back">Назад</string>
     <string name="wear_os_section">BitChord для Wear OS</string>
@@ -1494,4 +1494,7 @@
     <string name="diwali_cta">Let\'s Celebrate</string>
     <string name="diwali_subtitle">May this festival of lights fill your home with joy and your days with music.</string>
     <string name="diwali_title">BitChord wishes you a Happy Diwali</string>
+    <!-- BitChord ND -->
+    <string name="nd_search_source_server">Server</string>
+    <string name="nd_sources_subtitle">WebDAV and SMB libraries</string>
 </resources>

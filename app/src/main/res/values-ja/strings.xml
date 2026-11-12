@@ -32,7 +32,7 @@
     <string name="on_device">デバイス内</string>
     <string name="playlists">プレイリスト</string>
     <string name="new_playlist">新しいプレイリスト</string>
-    <string name="saved_to_youtube_music">YouTube Musicに保存済み</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="sign_in">ログイン</string>
     <string name="sign_out">ログアウト</string>
     <string name="signed_in">ログイン済み</string>
@@ -60,7 +60,7 @@
     <string name="artists">アーティスト</string>
     <string name="albums">アルバム</string>
     <string name="no_album_metadata">これらの曲はどのアルバムに属するか示されていません。</string>
-    <string name="search_empty">YouTube Musicで何百万もの曲を検索できます。</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="recent_searches">最近の検索</string>
     <string name="clear">消去</string>
     <string name="search_hint">アーティスト、曲、歌詞など</string>
@@ -321,7 +321,7 @@
     <string name="wifi_only_download_refusal">ダウンロードはWi-Fiのみに制限されています。モバイルデータを使うには設定でオフにしてください。</string>
     <string name="pinned_playlist_limit">ピン留めできるプレイリストは%1$d件までです</string>
     <string name="downloaded_playlist">ダウンロード済みのプレイリスト</string>
-    <string name="library_sign_in_description">Googleアカウントにログインすると、高評価した曲、プレイリスト、YouTube Musicの履歴が表示されます。</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="downloads_progress">ダウンロード · %1$d%%</string>
     <string name="downloads_finished">ダウンロード · 完了</string>
     <string name="downloading_progress">ダウンロード中 · %1$d%%</string>
@@ -329,7 +329,7 @@
     <string name="saved_to_bitchord_folder">Music/BitChordに保存済み</string>
     <string name="nothing_downloading">ダウンロード中の項目はありません</string>
     <string name="nothing_to_explore">現在探索できるものはありません</string>
-    <string name="no_youtube_music_results">YouTube Musicからの結果はありません</string>
+    <string name="no_youtube_music_results">No results on your server</string>
     <string name="library_empty">ライブラリにはまだ何もありません</string>
     <string name="history_sign_in_required">これまでの再生履歴を見るにはログインしてください</string>
     <string name="history_empty">まだ何も再生されていません</string>
@@ -337,7 +337,7 @@
     <string name="downloaded_playlist_empty">このプレイリストの曲はこのデバイスに残っていません</string>
     <string name="no_local_audio_found">このデバイスにオーディオファイルが見つかりません</string>
     <string name="no_internet_connection">インターネット接続がありません</string>
-    <string name="youtube_request_rejected">YouTube Musicがリクエストを拒否しました。もう一度ログインしてみてください。</string>
+    <string name="youtube_request_rejected">Your server rejected the request. Try signing in again.</string>
     <string name="something_went_wrong">問題が発生しました</string>
     <string name="unknown_artist">不明なアーティスト</string>
     <plurals name="downloads_failed_count">
@@ -424,7 +424,7 @@
     <string name="rich_presence_footer">Discordのプロフィールに再生中の曲を表示します。</string>
     <string name="save_name">名前を保存</string>
     <string name="saved_to_downloads">ダウンロードに保存済み</string>
-    <string name="saved_to_youtube_music_account">YouTube Musicアカウントに保存済み</string>
+    <string name="saved_to_youtube_music_account">Saved to your server</string>
     <string name="scrobble_delay">スクロブル遅延</string>
     <string name="scrobble_delay_subtitle">曲のどの時点でスクロブルするか</string>
     <string name="scrobble_timing">スクロブルのタイミング</string>
@@ -633,8 +633,8 @@
     <string name="swipe_plays_next">曲をスワイプすると次に再生します</string>
     <string name="swipe_adds_to_queue">オフにすると、スワイプした曲は再生キューの末尾に追加されます</string>
     <string name="import_backup_warning">これによりこのデバイスの設定と再生履歴がファイルの内容で置き換えられます。保持したい場合は先に現在のデータをエクスポートしてください。</string>
-    <string name="youtube_music_account">YouTube Musicアカウント</string>
-    <string name="tap_to_sign_in_google">タップしてGoogleでログイン</string>
+    <string name="youtube_music_account">Music server</string>
+    <string name="tap_to_sign_in_google">Tap to connect your server</string>
     <string name="export_succeeded">設定と%1$sをエクスポートしました</string>
     <string name="export_failed">エクスポートに失敗しました：%1$s</string>
     <string name="import_succeeded">v%2$sから%1$sをインポートしました</string>
@@ -1260,14 +1260,14 @@
     <string name="lossless_output_permission">Bluetoothコーデックを確認</string>
     <string name="lossless_output_permission_detail">付近のデバイスを許可すると、LDACまたはLHDCのヘッドホンでロスレス専用アドオンを使えます</string>
     <string name="cached_songs">キャッシュ済みの曲</string>
-    <string name="cached_songs_subtitle">曲キャッシュ内のYouTubeとJioSaavnの曲</string>
-    <string name="cached_songs_empty">キャッシュ済みの曲はまだありません。YouTubeやJioSaavnで再生した曲がここに表示されます。</string>
+    <string name="cached_songs_subtitle">Songs kept in the song cache</string>
+    <string name="cached_songs_empty">No cached songs yet. Songs you stream will show up here.</string>
     <string name="cached_song_partial">一部のみ</string>
     <string name="remove_from_cache">キャッシュから削除</string>
     <string name="cached_song_remove">削除</string>
     <string name="removed_from_cache">曲のキャッシュから削除しました</string>
     <string name="show_cache_folder">キャッシュ済みの曲フォルダを表示</string>
-    <string name="show_cache_folder_subtitle">曲キャッシュに保存されたYouTubeとJioSaavnの曲のフォルダをライブラリに追加します</string>
+    <string name="show_cache_folder_subtitle">Adds a Cached songs folder to Library with the songs kept in the song cache</string>
     <string name="song_cache_unlimited">無制限</string>
     <string name="song_cache_unlimited_subtitle">上限なし。キャッシュされた音声はストレージがいっぱいになるまで増え続けます。</string>
     <string name="clear_song_cache_title">曲キャッシュを消去しますか？</string>
@@ -1324,14 +1324,14 @@
     <string name="replay_period_monthly">月間</string>
     <string name="replay_period_yearly">年間</string>
     <string name="replay_period_lifetime">全期間</string>
-    <string name="onboarding_title">数百万曲を BitChord でストリーミング</string>
+    <string name="onboarding_title">Your music, streamed on BitChord</string>
     <string name="onboarding_name_prompt">どうお呼びしましょうか?</string>
     <string name="onboarding_name_hint">あなたの名前</string>
-    <string name="onboarding_name_footer">いっしょに聴くを使うと、友だちにこの名前が表示されます。あとから設定で変更できます。</string>
+    <string name="onboarding_name_footer">You can change it later in Settings.</string>
     <string name="onboarding_next">次へ</string>
-    <string name="onboarding_connect_title">YouTubeアカウントを接続</string>
-    <string name="onboarding_connect_body">ライブラリ、プレイリスト、ミックスを引き継いで、友だちといっしょに聴くパーティーを始めましょう。</string>
-    <string name="onboarding_sign_in_google">Googleでログイン</string>
+    <string name="onboarding_connect_title">Connect your music server</string>
+    <string name="onboarding_connect_body">Bring your library, playlists and starred songs from Navidrome or any Subsonic server.</string>
+    <string name="onboarding_sign_in_google">Connect a server</string>
     <string name="onboarding_skip_sign_in">ログインをスキップ</string>
     <string name="onboarding_back">戻る</string>
     <string name="wear_os_section">Wear OS 向け BitChord</string>
@@ -1440,4 +1440,7 @@
     <string name="diwali_cta">Let\'s Celebrate</string>
     <string name="diwali_subtitle">May this festival of lights fill your home with joy and your days with music.</string>
     <string name="diwali_title">BitChord wishes you a Happy Diwali</string>
+    <!-- BitChord ND -->
+    <string name="nd_search_source_server">Server</string>
+    <string name="nd_sources_subtitle">WebDAV and SMB libraries</string>
 </resources>

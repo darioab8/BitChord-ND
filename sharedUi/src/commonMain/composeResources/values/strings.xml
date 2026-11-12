@@ -143,7 +143,7 @@
     <string name="downloaded">Downloaded</string>
     <string name="explore">Explore</string>
     <string name="library">Library</string>
-    <string name="library_sign_in_description">Sign in to your Google account to see your liked songs, playlists, and YouTube Music history.</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="new_playlist">New playlist</string>
     <string name="on_device">On Device</string>
     <string name="personalized_recommendations">Get personalized recommendations for you</string>
@@ -157,9 +157,9 @@
     <string name="recent_searches">Recent searches</string>
     <string name="replay_subtitle">Your top songs, artists, albums and genres</string>
     <string name="retry">Retry</string>
-    <string name="saved_to_youtube_music">Saved to YouTube Music</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="search">Search</string>
-    <string name="search_empty">Search millions of songs on YouTube Music.</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="search_hint">Artists, Songs, Lyrics and More</string>
     <string name="search_library_empty">Search the songs in your Local Music folder.</string>
     <string name="search_library_hint">Songs, Artists and Albums</string>
@@ -196,7 +196,7 @@
     <string name="shelf_youtube_charts">YouTube Charts</string>
     <string name="show_all">Show all</string>
     <string name="sign_in">Sign in</string>
-    <string name="sign_in_youtube_music">Sign in to YouTube Music</string>
+    <string name="sign_in_youtube_music">Connect your music server</string>
     <string name="subscriptions">Subscriptions</string>
     <string name="your_replay">Your Replay</string>
     <string name="your_listening_experience">Your listening experience</string>
@@ -204,7 +204,7 @@
     <string name="member_since">Member since</string>
     <string name="import_spotify">Import Spotify</string>
     <string name="import_spotify_subtitle">From a playlist link</string>
-    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_in_with_google">Connect a server</string>
     <string name="top_picks_for_you">Top Picks for You</string>
     <string name="top_pick_made_for_you">Made for You</string>
     <string name="top_pick_mood_for_you">Mood for You</string>

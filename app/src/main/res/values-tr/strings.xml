@@ -33,7 +33,7 @@
     <string name="on_device">Cihazda</string>
     <string name="playlists">Çalma listeleri</string>
     <string name="new_playlist">Yeni çalma listesi</string>
-    <string name="saved_to_youtube_music">YouTube Music\'e kaydedildi</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="sign_in">Giriş yap</string>
     <string name="sign_out">Çıkış yap</string>
     <string name="signed_in">Giriş yapıldı</string>
@@ -68,7 +68,7 @@
     <string name="artists">Sanatçılar</string>
     <string name="albums">Albümler</string>
     <string name="no_album_metadata">Bu parçaların hiçbiri hangi albümden geldiğini belirtmiyor.</string>
-    <string name="search_empty">YouTube Music\'te milyonlarca şarkı arayın.</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="recent_searches">Son aramalar</string>
     <string name="clear">Temizle</string>
     <string name="search_hint">Sanatçılar, Şarkılar, Sözler ve Daha Fazlası</string>
@@ -351,7 +351,7 @@
     <string name="wifi_only_download_refusal">İndirmeler yalnızca Wi-Fi ile sınırlıdır. Mobil veri kullanmak için Ayarlar\'dan bunu kapatın.</string>
     <string name="pinned_playlist_limit">Yalnızca %1$d çalma listesi sabitlenebilir</string>
     <string name="downloaded_playlist">İndirilen çalma listesi</string>
-    <string name="library_sign_in_description">Beğendiğin şarkıları, çalma listelerini ve YouTube Music geçmişini görmek için Google hesabınla giriş yap.</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="downloads_progress">İndirmeler · %1$d%%</string>
     <string name="downloads_finished">İndirmeler · tamamlandı</string>
     <string name="downloading_progress">İndiriliyor · %1$d%%</string>
@@ -361,7 +361,7 @@
     <string name="saved_to_bitchord_folder">Müzik/BitChord klasörüne kaydedildi</string>
     <string name="nothing_downloading">İndirilen bir şey yok</string>
     <string name="nothing_to_explore">Şu anda keşfedilecek bir şey yok</string>
-    <string name="no_youtube_music_results">YouTube Music\'ten sonuç yok</string>
+    <string name="no_youtube_music_results">No results on your server</string>
     <string name="library_empty">Kitaplığında henüz bir şey yok</string>
     <string name="history_sign_in_required">Ne dinlediğini görmek için giriş yap</string>
     <string name="history_empty">Henüz bir şey çalınmadı</string>
@@ -369,7 +369,7 @@
     <string name="downloaded_playlist_empty">Bu çalma listesinden bu cihazda hiçbir şey kalmadı</string>
     <string name="no_local_audio_found">Bu cihazda ses dosyası bulunamadı</string>
     <string name="no_internet_connection">İnternet bağlantısı yok</string>
-    <string name="youtube_request_rejected">YouTube Music isteği reddetti. Tekrar giriş yapmayı deneyin.</string>
+    <string name="youtube_request_rejected">Your server rejected the request. Try signing in again.</string>
     <string name="something_went_wrong">Bir şeyler ters gitti</string>
     <string name="unknown_artist">Bilinmeyen sanatçı</string>
     <plurals name="downloads_failed_count">
@@ -467,7 +467,7 @@
     <string name="rich_presence_footer">Discord profilinde ne çaldığını göster.</string>
     <string name="save_name">Adı kaydet</string>
     <string name="saved_to_downloads">İndirilenlere kaydedildi</string>
-    <string name="saved_to_youtube_music_account">YouTube Music hesabına kaydedildi</string>
+    <string name="saved_to_youtube_music_account">Saved to your server</string>
     <string name="scrobble_delay">Scrobble gecikmesi</string>
     <string name="scrobble_delay_subtitle">Bir şarkının ne kadarı çalındığında scrobble edileceği</string>
     <string name="scrobble_timing">Scrobble zamanlaması</string>
@@ -682,8 +682,8 @@
     <string name="swipe_plays_next">Bir şarkıyı kaydırmak onu sonraki olarak çalar</string>
     <string name="swipe_adds_to_queue">Kapalıyken kaydırmak şarkıyı sıranın sonuna ekler</string>
     <string name="import_backup_warning">Bu, dosyanın içeriğiyle bu cihazın ayarlarını ve dinleme geçmişini değiştirir. Korumak istiyorsan önce mevcut verileri dışa aktar.</string>
-    <string name="youtube_music_account">YouTube Music hesabı</string>
-    <string name="tap_to_sign_in_google">Google ile giriş yapmak için dokun</string>
+    <string name="youtube_music_account">Music server</string>
+    <string name="tap_to_sign_in_google">Tap to connect your server</string>
     <string name="export_succeeded">Ayarlar ve %1$s dışa aktarıldı</string>
     <string name="export_failed">Dışa aktarma başarısız: %1$s</string>
     <string name="import_succeeded">v%2$s\'den %1$s içe aktarıldı</string>
@@ -1239,14 +1239,14 @@
     <string name="lossless_output_permission">Bluetooth kodeğini kontrol et</string>
     <string name="lossless_output_permission_detail">LDAC veya LHDC kulaklıkların kayıpsız eklentileri açabilmesi için Yakındaki cihazlar iznini verin</string>
     <string name="cached_songs">Önbellekteki şarkılar</string>
-    <string name="cached_songs_subtitle">Şarkı önbelleğindeki YouTube ve JioSaavn şarkıları</string>
-    <string name="cached_songs_empty">Henüz önbellekte şarkı yok. YouTube veya JioSaavn üzerinden çaldığın şarkılar burada görünecek.</string>
+    <string name="cached_songs_subtitle">Songs kept in the song cache</string>
+    <string name="cached_songs_empty">No cached songs yet. Songs you stream will show up here.</string>
     <string name="cached_song_partial">Kısmi</string>
     <string name="remove_from_cache">Önbellekten kaldır</string>
     <string name="cached_song_remove">Kaldır</string>
     <string name="removed_from_cache">Şarkı önbelleğinden kaldırıldı</string>
     <string name="show_cache_folder">Önbellekteki şarkılar klasörünü göster</string>
-    <string name="show_cache_folder_subtitle">Kitaplığa, önbellekte tutulan YouTube ve JioSaavn şarkılarını içeren bir klasör ekler</string>
+    <string name="show_cache_folder_subtitle">Adds a Cached songs folder to Library with the songs kept in the song cache</string>
     <string name="song_cache_unlimited">Sınırsız</string>
     <string name="song_cache_unlimited_subtitle">Sınır yok. Önbellekteki ses, depolama alanı dolana kadar büyüyebilir.</string>
     <string name="clear_song_cache_title">Şarkı önbelleği temizlensin mi?</string>
@@ -1312,14 +1312,14 @@
     <string name="replay_period_monthly">Aylık</string>
     <string name="replay_period_yearly">Yıllık</string>
     <string name="replay_period_lifetime">Tüm zamanlar</string>
-    <string name="onboarding_title">Milyonlarca şarkı, BitChord’da akışta</string>
+    <string name="onboarding_title">Your music, streamed on BitChord</string>
     <string name="onboarding_name_prompt">Size nasıl hitap edelim?</string>
     <string name="onboarding_name_hint">Adınız</string>
-    <string name="onboarding_name_footer">Birlikte Dinle’yi kullandığınızda arkadaşlarınız bunu görür. Daha sonra Ayarlar’dan değiştirebilirsiniz.</string>
+    <string name="onboarding_name_footer">You can change it later in Settings.</string>
     <string name="onboarding_next">İleri</string>
-    <string name="onboarding_connect_title">YouTube hesabınızı bağlayın</string>
-    <string name="onboarding_connect_body">Kitaplığınızı, çalma listelerinizi ve miksleri yanınızda taşıyın, arkadaşlarınızla Birlikte Dinle oturumu başlatın.</string>
-    <string name="onboarding_sign_in_google">Google ile giriş yap</string>
+    <string name="onboarding_connect_title">Connect your music server</string>
+    <string name="onboarding_connect_body">Bring your library, playlists and starred songs from Navidrome or any Subsonic server.</string>
+    <string name="onboarding_sign_in_google">Connect a server</string>
     <string name="onboarding_skip_sign_in">Girişi atla</string>
     <string name="onboarding_back">Geri</string>
     <string name="wear_os_section">Wear OS için BitChord</string>
@@ -1419,4 +1419,7 @@
     <string name="diwali_cta">Let\'s Celebrate</string>
     <string name="diwali_subtitle">May this festival of lights fill your home with joy and your days with music.</string>
     <string name="diwali_title">BitChord wishes you a Happy Diwali</string>
+    <!-- BitChord ND -->
+    <string name="nd_search_source_server">Server</string>
+    <string name="nd_sources_subtitle">WebDAV and SMB libraries</string>
 </resources>

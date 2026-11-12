@@ -140,7 +140,7 @@
     <string name="downloaded">已下载</string>
     <string name="explore">探索</string>
     <string name="library">资料库</string>
-    <string name="library_sign_in_description">登录 Google 账号即可查看你喜欢的歌曲、播放列表和 YouTube Music 历史记录。</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="new_playlist">新建播放列表</string>
     <string name="on_device">设备内</string>
     <string name="personalized_recommendations">获取个性化推荐</string>
@@ -154,9 +154,9 @@
     <string name="recent_searches">最近搜索</string>
     <string name="replay_subtitle">你的热门歌曲、艺人、专辑和流派</string>
     <string name="retry">重试</string>
-    <string name="saved_to_youtube_music">已保存到 YouTube Music</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="search">搜索</string>
-    <string name="search_empty">在 YouTube Music 上搜索数百万首歌曲。</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="search_hint">艺人、歌曲、歌词等</string>
     <string name="selected">已选择</string>
     <string name="share">分享</string>
@@ -187,7 +187,7 @@
     <string name="shelf_youtube_charts">YouTube 排行榜</string>
     <string name="show_all">查看全部</string>
     <string name="sign_in">登录</string>
-    <string name="sign_in_youtube_music">登录 YouTube Music</string>
+    <string name="sign_in_youtube_music">Connect your music server</string>
     <string name="subscriptions">订阅</string>
     <string name="your_replay">你的 Replay</string>
     <string name="your_listening_experience">你的收听体验</string>

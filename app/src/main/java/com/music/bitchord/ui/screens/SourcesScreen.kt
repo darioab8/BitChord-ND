@@ -1,5 +1,6 @@
 package com.music.bitchord.ui.screens
 
+import com.music.bitchord.data.NdFeatures
 import com.music.bitchord.ui.icons.SfIcons
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -204,7 +205,8 @@ fun SourcesScreen(
     ) {
         SettingsPageTitle(stringResource(R.string.source))
 
-        SettingsGroup(
+        // BitChord ND: addons only stand in for YouTube tracks.
+        if (NdFeatures.YOUTUBE) SettingsGroup(
             header = stringResource(R.string.sources_order_header),
             footer = buildString {
                 append(stringResource(R.string.sources_order_footer))
@@ -360,7 +362,8 @@ fun SourcesScreen(
             onDisconnect = { AppSettings.clearSmb() },
         )
 
-        SettingsGroup(
+        // BitChord ND: addons only stand in for YouTube tracks.
+        if (NdFeatures.YOUTUBE) SettingsGroup(
             header = stringResource(R.string.source_matching),
             footer = stringResource(R.string.upgrade_length_slack_footer),
         ) {

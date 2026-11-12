@@ -140,7 +140,7 @@
     <string name="downloaded">İndirildi</string>
     <string name="explore">Keşfet</string>
     <string name="library">Kitaplık</string>
-    <string name="library_sign_in_description">Beğendiğin şarkıları, çalma listelerini ve YouTube Music geçmişini görmek için Google hesabınla giriş yap.</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="new_playlist">Yeni çalma listesi</string>
     <string name="on_device">Cihazda</string>
     <string name="personalized_recommendations">Size özel öneriler alın</string>
@@ -154,9 +154,9 @@
     <string name="recent_searches">Son aramalar</string>
     <string name="replay_subtitle">En çok dinlediğin şarkılar, sanatçılar, albümler ve türler</string>
     <string name="retry">Yeniden dene</string>
-    <string name="saved_to_youtube_music">YouTube Music\'e kaydedildi</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="search">Ara</string>
-    <string name="search_empty">YouTube Music\'te milyonlarca şarkı arayın.</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="search_hint">Sanatçılar, Şarkılar, Sözler ve Daha Fazlası</string>
     <string name="selected">Seçildi</string>
     <string name="share">Paylaş</string>
@@ -187,7 +187,7 @@
     <string name="shelf_youtube_charts">YouTube Listeleri</string>
     <string name="show_all">Tümünü göster</string>
     <string name="sign_in">Giriş yap</string>
-    <string name="sign_in_youtube_music">YouTube Music\'e giriş yap</string>
+    <string name="sign_in_youtube_music">Connect your music server</string>
     <string name="subscriptions">Abonelikler</string>
     <string name="your_replay">Replay\'in</string>
     <string name="your_listening_experience">Dinleme deneyimin</string>

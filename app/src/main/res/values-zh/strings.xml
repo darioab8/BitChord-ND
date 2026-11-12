@@ -32,7 +32,7 @@
     <string name="on_device">设备内</string>
     <string name="playlists">播放列表</string>
     <string name="new_playlist">新建播放列表</string>
-    <string name="saved_to_youtube_music">已保存到 YouTube Music</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="sign_in">登录</string>
     <string name="sign_out">退出登录</string>
     <string name="signed_in">已登录</string>
@@ -60,7 +60,7 @@
     <string name="artists">艺人</string>
     <string name="albums">专辑</string>
     <string name="no_album_metadata">这些曲目均未标明所属专辑。</string>
-    <string name="search_empty">在 YouTube Music 上搜索数百万首歌曲。</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="recent_searches">最近搜索</string>
     <string name="clear">清除</string>
     <string name="search_hint">艺人、歌曲、歌词等</string>
@@ -321,7 +321,7 @@
     <string name="wifi_only_download_refusal">下载已限制为仅使用 Wi-Fi。请在设置中关闭此项以使用移动数据。</string>
     <string name="pinned_playlist_limit">最多只能固定 %1$d 个播放列表</string>
     <string name="downloaded_playlist">已下载的播放列表</string>
-    <string name="library_sign_in_description">登录 Google 账号即可查看你喜欢的歌曲、播放列表和 YouTube Music 历史记录。</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="downloads_progress">下载 · %1$d%%</string>
     <string name="downloads_finished">下载 · 已完成</string>
     <string name="downloading_progress">正在下载 · %1$d%%</string>
@@ -329,7 +329,7 @@
     <string name="saved_to_bitchord_folder">已保存到 Music/BitChord</string>
     <string name="nothing_downloading">当前没有下载任务</string>
     <string name="nothing_to_explore">目前没有可探索的内容</string>
-    <string name="no_youtube_music_results">YouTube Music 没有搜索结果</string>
+    <string name="no_youtube_music_results">No results on your server</string>
     <string name="library_empty">你的资料库还是空的</string>
     <string name="history_sign_in_required">登录后即可查看你的收听记录</string>
     <string name="history_empty">尚未播放过任何内容</string>
@@ -337,7 +337,7 @@
     <string name="downloaded_playlist_empty">此设备上已没有该播放列表中的任何内容</string>
     <string name="no_local_audio_found">此设备上未找到音频文件</string>
     <string name="no_internet_connection">无网络连接</string>
-    <string name="youtube_request_rejected">YouTube Music 拒绝了此请求，请尝试重新登录。</string>
+    <string name="youtube_request_rejected">Your server rejected the request. Try signing in again.</string>
     <string name="something_went_wrong">出了点问题</string>
     <string name="unknown_artist">未知艺人</string>
     <plurals name="downloads_failed_count">
@@ -424,7 +424,7 @@
     <string name="rich_presence_footer">在你的 Discord 个人资料中显示正在播放的内容。</string>
     <string name="save_name">保存名称</string>
     <string name="saved_to_downloads">已保存到 Downloads</string>
-    <string name="saved_to_youtube_music_account">已保存到你的 YouTube Music 账号</string>
+    <string name="saved_to_youtube_music_account">Saved to your server</string>
     <string name="scrobble_delay">Scrobble 延迟</string>
     <string name="scrobble_delay_subtitle">歌曲播放到什么进度时进行 Scrobble</string>
     <string name="scrobble_timing">Scrobble 时机</string>
@@ -633,8 +633,8 @@
     <string name="swipe_plays_next">滑动歌曲后将其设为下一首播放</string>
     <string name="swipe_adds_to_queue">关闭后，滑动会将歌曲添加到播放队列末尾</string>
     <string name="import_backup_warning">这将用文件中的内容替换此设备上的设置和收听记录。如果想保留当前数据，请先将其导出。</string>
-    <string name="youtube_music_account">YouTube Music 账号</string>
-    <string name="tap_to_sign_in_google">点按以使用 Google 登录</string>
+    <string name="youtube_music_account">Music server</string>
+    <string name="tap_to_sign_in_google">Tap to connect your server</string>
     <string name="export_succeeded">已导出设置和%1$s</string>
     <string name="export_failed">导出失败：%1$s</string>
     <string name="import_succeeded">已从 v%2$s 导入%1$s</string>
@@ -1259,14 +1259,14 @@
     <string name="lossless_output_permission">检查蓝牙编解码器</string>
     <string name="lossless_output_permission_detail">允许“附近的设备”权限，LDAC 或 LHDC 耳机即可解锁仅限无损的插件</string>
     <string name="cached_songs">已缓存的歌曲</string>
-    <string name="cached_songs_subtitle">歌曲缓存中的 YouTube 和 JioSaavn 歌曲</string>
-    <string name="cached_songs_empty">还没有已缓存的歌曲。你从 YouTube 或 JioSaavn 播放的歌曲会显示在这里。</string>
+    <string name="cached_songs_subtitle">Songs kept in the song cache</string>
+    <string name="cached_songs_empty">No cached songs yet. Songs you stream will show up here.</string>
     <string name="cached_song_partial">部分</string>
     <string name="remove_from_cache">从缓存中移除</string>
     <string name="cached_song_remove">移除</string>
     <string name="removed_from_cache">已从歌曲缓存中移除</string>
     <string name="show_cache_folder">显示已缓存歌曲文件夹</string>
-    <string name="show_cache_folder_subtitle">在资料库中添加一个文件夹，列出歌曲缓存中保存的 YouTube 和 JioSaavn 歌曲</string>
+    <string name="show_cache_folder_subtitle">Adds a Cached songs folder to Library with the songs kept in the song cache</string>
     <string name="song_cache_unlimited">无限制</string>
     <string name="song_cache_unlimited_subtitle">无上限。缓存的音频会一直增长，直到存储空间用完。</string>
     <string name="clear_song_cache_title">清除歌曲缓存？</string>
@@ -1317,14 +1317,14 @@
     <string name="replay_period_monthly">每月</string>
     <string name="replay_period_yearly">每年</string>
     <string name="replay_period_lifetime">全部</string>
-    <string name="onboarding_title">数百万首歌曲，在 BitChord 上畅听</string>
+    <string name="onboarding_title">Your music, streamed on BitChord</string>
     <string name="onboarding_name_prompt">我们该怎么称呼你？</string>
     <string name="onboarding_name_hint">你的名字</string>
-    <string name="onboarding_name_footer">使用“一起听”时，好友会看到这个名字。你可以稍后在“设置”中修改。</string>
+    <string name="onboarding_name_footer">You can change it later in Settings.</string>
     <string name="onboarding_next">下一步</string>
-    <string name="onboarding_connect_title">连接你的 YouTube 账号</string>
-    <string name="onboarding_connect_body">带上你的音乐库、播放列表和合辑，与好友开启“一起听”派对。</string>
-    <string name="onboarding_sign_in_google">使用 Google 登录</string>
+    <string name="onboarding_connect_title">Connect your music server</string>
+    <string name="onboarding_connect_body">Bring your library, playlists and starred songs from Navidrome or any Subsonic server.</string>
+    <string name="onboarding_sign_in_google">Connect a server</string>
     <string name="onboarding_skip_sign_in">跳过登录</string>
     <string name="onboarding_back">返回</string>
     <string name="wear_os_section">适用于 Wear OS 的 BitChord</string>
@@ -1439,4 +1439,7 @@
     <string name="diwali_cta">Let\'s Celebrate</string>
     <string name="diwali_subtitle">May this festival of lights fill your home with joy and your days with music.</string>
     <string name="diwali_title">BitChord wishes you a Happy Diwali</string>
+    <!-- BitChord ND -->
+    <string name="nd_search_source_server">Server</string>
+    <string name="nd_sources_subtitle">WebDAV and SMB libraries</string>
 </resources>

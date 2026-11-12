@@ -143,8 +143,7 @@
     <string name="downloaded">다운로드</string>
     <string name="explore">탐색</string>
     <string name="library">라이브러리</string>
-    <string name="library_sign_in_description">Google 계정에 로그인하여 좋아요 표시한 음악, 재생목록, YouTube Music 기록을
-        확인하세요.</string>
+    <string name="library_sign_in_description">Connect your music server to see your starred songs, playlists and albums.</string>
     <string name="new_playlist">새 재생목록</string>
     <string name="on_device">기기에 저장됨</string>
     <string name="personalized_recommendations">맞춤 추천 받기</string>
@@ -158,9 +157,9 @@
     <string name="recent_searches">최근 검색어</string>
     <string name="replay_subtitle">가장 많이 들은 곡, 아티스트, 앨범 및 장르</string>
     <string name="retry">다시 시도</string>
-    <string name="saved_to_youtube_music">YouTube Music에 저장됨</string>
+    <string name="saved_to_youtube_music">Saved to your server</string>
     <string name="search">검색</string>
-    <string name="search_empty">YouTube Music에서 수많은 음악을 검색해 보세요.</string>
+    <string name="search_empty">Search your music library.</string>
     <string name="search_hint">아티스트, 음악, 가사 등</string>
     <string name="search_library_empty">로컬 음악 폴더에서 노래를 검색합니다.</string>
     <string name="search_library_hint">음악, 아티스트, 앨범</string>
@@ -197,7 +196,7 @@
     <string name="shelf_youtube_charts">YouTube 차트</string>
     <string name="show_all">모두 보기</string>
     <string name="sign_in">로그인</string>
-    <string name="sign_in_youtube_music">YouTube Music에 로그인</string>
+    <string name="sign_in_youtube_music">Connect your music server</string>
     <string name="subscriptions">구독</string>
     <string name="your_replay">내 리플레이</string>
     <string name="your_listening_experience">내 감상 경험</string>
@@ -205,7 +204,7 @@
     <string name="member_since">가입일</string>
     <string name="import_spotify">Spotify 가져오기</string>
     <string name="import_spotify_subtitle">플레이리스트 링크에서</string>
-    <string name="sign_in_with_google">Google로 로그인</string>
+    <string name="sign_in_with_google">Connect a server</string>
     <string name="top_picks_for_you">회원님을 위한 추천</string>
     <string name="top_pick_made_for_you">회원님을 위한 맞춤</string>
     <string name="top_pick_mood_for_you">회원님을 위한 분위기</string>
