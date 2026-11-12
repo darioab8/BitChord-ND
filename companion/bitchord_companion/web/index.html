@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BitChord ND companion</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1c1c1e; --muted: #6e6e73; --bg: #f5f5f7; --card: #fff; --line: #e5e5ea; --accent: #fa2d48; --ok: #1f9d55; --bad: #d70015; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #f5f5f7; --muted: #98989d; --bg: #000; --card: #1c1c1e; --line: #2c2c2e; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--fg); }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  section { background: var(--card); border-radius: 14px; padding: 18px 20px; margin-bottom: 18px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+  input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: inherit; font: inherit; }
+  .row { display: flex; gap: 10px; align-items: end; }
+  .row > div { flex: 1; }
+  button { padding: 10px 16px; border-radius: 10px; border: 0; background: var(--accent); color: #fff; font: inherit; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  button.quiet { background: transparent; color: var(--accent); padding: 4px 8px; font-weight: 500; }
+  button:disabled { opacity: .5; cursor: default; }
+  .status { margin-top: 10px; font-size: 14px; color: var(--muted); min-height: 1.4em; }
+  .status.bad { color: var(--bad); }
+  .facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; font-size: 14px; }
+  .facts dt { color: var(--muted); }
+  .facts dd { margin: 0; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { padding: 12px 0; border-top: 1px solid var(--line); }
+  li:first-child { border-top: 0; }
+  .job-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .job-title { font-weight: 600; overflow-wrap: anywhere; }
+  .job-meta { color: var(--muted); font-size: 13px; }
+  .badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--line); white-space: nowrap; }
+  .badge.done { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+  .badge.failed { background: color-mix(in srgb, var(--bad) 18%, transparent); color: var(--bad); }
+  .bar { height: 4px; border-radius: 2px; background: var(--line); margin-top: 8px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); transition: width .3s; }
+  pre { white-space: pre-wrap; font-size: 12px; color: var(--muted); margin: 8px 0 0; max-height: 160px; overflow: auto; }
+  .empty { color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>BitChord ND companion</h1>
+  <p class="sub">Downloads YouTube Music albums into your Navidrome library, tagged with beets.</p>
+
+  <section id="auth">
+    <h2>Token</h2>
+    <div class="row">
+      <div><input id="token" type="password" placeholder="COMPANION_TOKEN" autocomplete="off"></div>
+      <button id="save-token">Connect</button>
+    </div>
+    <div class="status" id="auth-status"></div>
+  </section>
+
+  <section id="info" hidden>
+    <h2>Server</h2>
+    <dl class="facts" id="facts"></dl>
+  </section>
+
+  <section id="add" hidden>
+    <h2>Download an album</h2>
+    <label for="url">YouTube Music album link</label>
+    <input id="url" placeholder="https://music.youtube.com/playlist?list=OLAK5uy_…">
+    <div class="row">
+      <div>
+        <label for="folder">Folder in your library</label>
+        <input id="folder">
+      </div>
+      <button id="queue">Download</button>
+    </div>
+    <div class="status" id="add-status"></div>
+  </section>
+
+  <section id="jobs-card" hidden>
+    <h2>Jobs</h2>
+    <ul id="jobs"></ul>
+  </section>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  let token = "";
+  try { token = localStorage.getItem("companion-token") || ""; } catch (_) {}
+  $("token").value = token;
+  let timer = null;
+
+  async function api(method, path, body) {
+    const res = await fetch(path, {
+      method,
+      headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || ("HTTP " + res.status));
+    return data;
+  }
+
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  async function connect() {
+    token = $("token").value.trim();
+    try { localStorage.setItem("companion-token", token); } catch (_) {}
+    $("auth-status").className = "status";
+    $("auth-status").textContent = "Connecting…";
+    try {
+      const h = await api("GET", "/api/health");
+      $("auth-status").textContent = "Connected.";
+      const facts = $("facts");
+      facts.replaceChildren();
+      const rows = [
+        ["Version", h.version],
+        ["yt-dlp", h.ytDlp || "not found"],
+        ["beets", h.beets || "not found"],
+        ["Audio", h.premiumCookies ? "Premium cookies: AAC 256 kbps where available" : "No cookies: Opus ~130–160 kbps"],
+        ["Default folder", h.defaultFolder || "(library root)"],
+        ["Navidrome rescan", h.navidromeRescan ? "on" : "off — Navidrome picks albums up on its own scan"],
+      ];
+      for (const [k, v] of rows) { facts.append(el("dt", null, k), el("dd", null, v)); }
+      if (!$("folder").value) $("folder").value = h.defaultFolder || "";
+      for (const id of ["info", "add", "jobs-card"]) $(id).hidden = false;
+      refresh();
+      clearInterval(timer);
+      timer = setInterval(refresh, 3000);
+    } catch (e) {
+      $("auth-status").className = "status bad";
+      $("auth-status").textContent = e.message;
+    }
+  }
+
+  async function refresh() {
+    let data;
+    try { data = await api("GET", "/api/jobs"); } catch (_) { return; }
+    const list = $("jobs");
+    list.replaceChildren();
+    if (!data.jobs.length) { list.append(el("li", "empty", "Nothing yet.")); return; }
+    for (const j of data.jobs) {
+      const li = el("li");
+      const head = el("div", "job-head");
+      const left = el("div");
+      left.append(el("div", "job-title", j.title));
+      left.append(el("div", "job-meta", [j.artist, j.folder && ("→ " + j.folder)].filter(Boolean).join("  ")));
+      const badgeClass = j.state === "done" ? "badge done" : (j.state === "failed" ? "badge failed" : "badge");
+      head.append(left, el("span", badgeClass, j.state));
+      li.append(head);
+      if (!j.finished && j.total > 0) {
+        const bar = el("div", "bar"), fill = el("div");
+        fill.style.width = Math.round(100 * j.progress / j.total) + "%";
+        bar.append(fill);
+        li.append(bar);
+      }
+      li.append(el("div", "job-meta", j.message.split("\n")[0]));
+      if (j.state === "failed" && j.message.includes("\n")) li.append(el("pre", null, j.message));
+      const actions = el("div");
+      if (!j.finished) {
+        const b = el("button", "quiet", "Cancel");
+        b.onclick = () => api("POST", `/api/jobs/${j.id}/cancel`).then(refresh).catch(() => {});
+        actions.append(b);
+      } else {
+        const b = el("button", "quiet", "Remove");
+        b.onclick = () => api("DELETE", `/api/jobs/${j.id}`).then(refresh).catch(() => {});
+        actions.append(b);
+      }
+      li.append(actions);
+      list.append(li);
+    }
+  }
+
+  async function queue() {
+    const url = $("url").value.trim();
+    $("add-status").className = "status";
+    if (!url) { $("add-status").textContent = "Paste an album link first."; return; }
+    $("queue").disabled = true;
+    try {
+      const j = await api("POST", "/api/jobs", { url, folder: $("folder").value.trim() });
+      $("add-status").textContent = "Queued: " + j.title;
+      $("url").value = "";
+      refresh();
+    } catch (e) {
+      $("add-status").className = "status bad";
+      $("add-status").textContent = e.message;
+    } finally {
+      $("queue").disabled = false;
+    }
+  }
+
+  $("save-token").onclick = connect;
+  $("token").addEventListener("keydown", (e) => { if (e.key === "Enter") connect(); });
+  $("queue").onclick = queue;
+  $("url").addEventListener("keydown", (e) => { if (e.key === "Enter") queue(); });
+  if (token) connect();
+})();
+</script>
+</body>
+</html>

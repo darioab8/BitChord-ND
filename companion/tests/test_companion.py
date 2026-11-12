@@ -1,0 +1,276 @@
+import json
+import tempfile
+import threading
+import unittest
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+from bitchord_companion import albums, jobs, pipeline, services
+from bitchord_companion.config import from_env
+from bitchord_companion.server import App, serve
+from bitchord_companion.worker import Worker
+
+TOKEN = "t" * 32
+
+
+def track(i):
+    return {"videoId": f"abcdefghi{i:02d}", "title": f"Song {i}", "artist": "Band"}
+
+
+class FakeRunner(pipeline.Runner):
+    """Pretends to be yt-dlp and beets: writes files where they would."""
+
+    def __init__(self, fail_tracks=(), beets_skips=False, beets_code=0, block=None):
+        self.calls = []
+        self.fail_tracks = set(fail_tracks)
+        self.beets_skips = beets_skips
+        self.beets_code = beets_code
+        self.block = block
+
+    def run(self, cmd, on_line, cancel):
+        self.calls.append(cmd)
+        if self.block is not None:
+            self.block.wait(5)
+            if cancel.is_set():
+                raise pipeline.Cancelled()
+        if cmd[0] == "yt-dlp":
+            out = Path(cmd[cmd.index("--output") + 1])
+            if "--yes-playlist" in cmd:
+                for n in (1, 2, 3):
+                    on_line(f"[download] Downloading item {n} of 3")
+                    Path(str(out).replace("%(playlist_index)02d.%(ext)s", f"{n:02d}.opus")).write_bytes(b"x")
+                return 0, ""
+            number = int(out.name.split(".")[0])
+            if number in self.fail_tracks:
+                return 1, "ERROR: [youtube] Video unavailable"
+            Path(str(out).replace("%(ext)s", "opus")).write_bytes(b"x")
+            return 0, ""
+        if cmd[0] == "beet":
+            staging = Path(cmd[-1])
+            library = Path(cmd[cmd.index("-d") + 1])
+            if not self.beets_skips and self.beets_code == 0:
+                for f in staging.glob("*.opus"):
+                    f.rename(library / f.name)
+            return self.beets_code, "beets output"
+        raise AssertionError(cmd)
+
+
+class Base(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        root = Path(self.tmp.name)
+        (root / "music").mkdir()
+        self.cfg = from_env({
+            "COMPANION_TOKEN": TOKEN,
+            "MUSIC_DIR": str(root / "music"),
+            "CONFIG_DIR": str(root / "config"),
+            "DEFAULT_FOLDER": "YouTube",
+        })
+        self.store = jobs.JobStore(self.cfg.config_dir / "jobs.db")
+        self.tags = {}
+        self.rescans = 0
+
+    def tearDown(self):
+        self.store.close()
+        self.tmp.cleanup()
+
+    def tools(self, runner):
+        def rescan():
+            self.rescans += 1
+            return None
+        return pipeline.Tools(
+            runner=runner,
+            tag=lambda path, tags: self.tags.__setitem__(path.name, tags),
+            fetch=lambda url: b"jpeg",
+            rescan=rescan,
+        )
+
+    def queue(self, **body):
+        body.setdefault("title", "Album")
+        body.setdefault("artist", "Band")
+        return self.store.add(albums.parse(body, self.cfg.default_folder))
+
+    def run_job(self, runner):
+        worker = Worker(self.cfg, Path("/beets.yaml"), self.store, self.tools(runner))
+        self.assertTrue(worker.run_one(timeout=0.1))
+        return worker
+
+
+class RequestTests(unittest.TestCase):
+    def test_folder_never_leaves_the_library(self):
+        self.assertEqual(albums.safe_folder("../../etc", "YouTube"), "etc")
+        self.assertEqual(albums.safe_folder("/YouTube/2026/", "x"), "YouTube/2026")
+        self.assertEqual(albums.safe_folder("..\\..\\", "YouTube"), "YouTube")
+        self.assertEqual(albums.safe_folder("", ""), "")
+        self.assertEqual(albums.safe_folder("a:b", ""), "a_b")
+
+    def test_only_youtube(self):
+        with self.assertRaises(albums.BadRequest):
+            albums.parse({"url": "https://example.com/album"}, "")
+        with self.assertRaises(albums.BadRequest):
+            albums.parse({"title": "x", "tracks": [{"videoId": "../../etc"}]}, "")
+        with self.assertRaises(albums.BadRequest):
+            albums.parse({"title": "x"}, "")
+        ok = albums.parse({"url": "https://music.youtube.com/playlist?list=OLAK5uy_x"}, "YouTube")
+        self.assertEqual(ok.folder, "YouTube")
+
+    def test_cover_from_google_hosts_only(self):
+        r = albums.parse({"title": "x", "tracks": [track(1)], "coverUrl": "http://169.254.169.254/latest"}, "")
+        self.assertIsNone(r.cover_url)
+        r = albums.parse({"title": "x", "tracks": [track(1)], "coverUrl": "https://lh3.googleusercontent.com/a=w1200"}, "")
+        self.assertIsNotNone(r.cover_url)
+
+
+class PipelineTests(Base):
+    def test_tracks_are_downloaded_tagged_imported_and_scanned(self):
+        self.cfg = self.cfg.__class__(**{**self.cfg.__dict__, "navidrome_url": "http://nd", "navidrome_user": "admin"})
+        job = self.queue(tracks=[track(1), track(2)], year=1999, browseId="MPREb_x",
+                         coverUrl="https://lh3.googleusercontent.com/c")
+        runner = FakeRunner()
+        self.run_job(runner)
+        done = self.store.get(job.id)
+        self.assertEqual(done.state, jobs.DONE, done.message)
+        self.assertEqual(self.tags["01.opus"]["track"], 1)
+        self.assertEqual(self.tags["02.opus"]["album"], "Album")
+        self.assertEqual(self.tags["02.opus"]["tracktotal"], 2)
+        self.assertEqual(self.tags["01.opus"]["year"], 1999)
+        beet = runner.calls[-1]
+        self.assertIn("source=youtube", beet)
+        self.assertIn("youtube_album=MPREb_x", beet)
+        self.assertEqual(Path(beet[beet.index("-d") + 1]), self.cfg.music_dir / "YouTube")
+        self.assertEqual(sorted(p.name for p in (self.cfg.music_dir / "YouTube").iterdir()), ["01.opus", "02.opus"])
+        self.assertEqual(self.rescans, 1)
+        self.assertFalse((self.cfg.work_dir / job.id).exists())
+
+    def test_no_reencode_and_cookies_only_when_present(self):
+        cmd = pipeline.ytdlp_track(self.cfg, "abcdefghijk", 1, Path("/w"))
+        self.assertNotIn("--audio-format", cmd)
+        self.assertNotIn("--cookies", cmd)
+        self.cfg.config_dir.mkdir(parents=True, exist_ok=True)
+        self.cfg.cookies_file.write_text("# Netscape HTTP Cookie File\n")
+        self.assertIn("--cookies", pipeline.ytdlp_track(self.cfg, "abcdefghijk", 1, Path("/w")))
+
+    def test_a_failed_track_fails_the_album_and_names_it(self):
+        job = self.queue(tracks=[track(1), track(2), track(3)])
+        self.run_job(FakeRunner(fail_tracks={2}))
+        failed = self.store.get(job.id)
+        self.assertEqual(failed.state, jobs.FAILED)
+        self.assertIn("1 of 3 tracks", failed.message)
+        self.assertIn("Song 2", failed.message)
+        self.assertEqual(list(self.cfg.music_dir.iterdir()), [])
+
+    def test_url_mode_reports_progress(self):
+        job = self.queue(url="https://music.youtube.com/playlist?list=OLAK5uy_abc", title="")
+        self.run_job(FakeRunner())
+        done = self.store.get(job.id)
+        self.assertEqual(done.state, jobs.DONE, done.message)
+        self.assertEqual(done.total, 3)
+
+    def test_beets_skipping_a_duplicate_is_reported(self):
+        job = self.queue(tracks=[track(1)])
+        self.run_job(FakeRunner(beets_skips=True))
+        self.assertEqual(self.store.get(job.id).state, jobs.SKIPPED)
+
+    def test_beets_error_fails_with_its_output(self):
+        job = self.queue(tracks=[track(1)])
+        self.run_job(FakeRunner(beets_code=1))
+        failed = self.store.get(job.id)
+        self.assertEqual(failed.state, jobs.FAILED)
+        self.assertIn("beets output", failed.message)
+
+    def test_cancel_a_running_job(self):
+        job = self.queue(tracks=[track(1)])
+        gate = threading.Event()
+        worker = Worker(self.cfg, Path("/b"), self.store, self.tools(FakeRunner(block=gate)))
+        t = threading.Thread(target=worker.run_one, kwargs={"timeout": 1})
+        t.start()
+        for _ in range(50):
+            if self.store.get(job.id).state == jobs.DOWNLOADING:
+                break
+            threading.Event().wait(0.02)
+        self.assertTrue(worker.cancel(job.id))
+        gate.set()
+        t.join(5)
+        self.assertEqual(self.store.get(job.id).state, jobs.CANCELLED)
+
+    def test_restart_requeues_interrupted_jobs(self):
+        job = self.queue(tracks=[track(1)])
+        self.store.update(job.id, state=jobs.DOWNLOADING)
+        again = jobs.JobStore(self.cfg.config_dir / "jobs.db")
+        self.assertEqual(again.get(job.id).state, jobs.QUEUED)
+        again.close()
+
+
+class BeetsConfigTests(Base):
+    def test_generated_config(self):
+        text = services.default_beets_config(self.cfg, ["musicbrainz", "fetchart", "embedart"])
+        self.assertIn("quiet_fallback: asis", text)
+        self.assertIn("duplicate_action: skip", text)
+        self.assertIn("plugins: musicbrainz fetchart embedart", text)
+        self.assertIn(str(self.cfg.config_dir / "beets" / "library.db"), text)
+        self.assertIn("plugins: []", services.default_beets_config(self.cfg, []))
+
+
+class ServerTests(Base):
+    def setUp(self):
+        super().setUp()
+        worker = Worker(self.cfg, Path("/b"), self.store, self.tools(FakeRunner()))
+        self.server = serve(App(self.cfg, self.store, worker, {"yt-dlp": "2026.11.01", "beets": "beets 2.5"}), 0)
+        self.port = self.server.server_address[1]
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.server_close()
+        super().tearDown()
+
+    def call(self, method, path, body=None, token=TOKEN):
+        req = urllib.request.Request(f"http://127.0.0.1:{self.port}{path}", method=method,
+                                     data=json.dumps(body).encode() if body is not None else None)
+        if token:
+            req.add_header("Authorization", f"Bearer {token}")
+        req.add_header("Content-Type", "application/json")
+        try:
+            with urllib.request.urlopen(req, timeout=5) as r:
+                return r.status, json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            return e.code, json.loads(e.read())
+
+    def test_token_required(self):
+        self.assertEqual(self.call("GET", "/api/health", token=None)[0], 401)
+        self.assertEqual(self.call("GET", "/api/health", token="wrong")[0], 401)
+        code, health = self.call("GET", "/api/health")
+        self.assertEqual(code, 200)
+        self.assertEqual(health["defaultFolder"], "YouTube")
+        self.assertFalse(health["premiumCookies"])
+
+    def test_page_is_served_without_token(self):
+        with urllib.request.urlopen(f"http://127.0.0.1:{self.port}/", timeout=5) as r:
+            self.assertIn(b"BitChord ND companion", r.read())
+
+    def test_queue_list_and_double_tap(self):
+        body = {"title": "Album", "artist": "Band", "browseId": "MPREb_1", "tracks": [track(1)]}
+        code, job = self.call("POST", "/api/jobs", body)
+        self.assertEqual(code, 202)
+        self.assertEqual(job["state"], "queued")
+        code, again = self.call("POST", "/api/jobs", body)
+        self.assertEqual((code, again["id"]), (200, job["id"]))
+        code, listing = self.call("GET", "/api/jobs")
+        self.assertEqual([j["id"] for j in listing["jobs"]], [job["id"]])
+        self.assertEqual(self.call("GET", f"/api/jobs/{job['id']}")[1]["title"], "Album")
+
+    def test_bad_requests(self):
+        self.assertEqual(self.call("POST", "/api/jobs", {"url": "https://evil.example/x"})[0], 400)
+        self.assertEqual(self.call("GET", "/api/jobs/000000000000")[0], 404)
+
+    def test_cancel_queued_then_remove(self):
+        _, job = self.call("POST", "/api/jobs", {"title": "A", "tracks": [track(1)]})
+        code, cancelled = self.call("POST", f"/api/jobs/{job['id']}/cancel")
+        self.assertEqual((code, cancelled["state"]), (200, "cancelled"))
+        self.assertEqual(self.call("DELETE", f"/api/jobs/{job['id']}")[0], 200)
+        self.assertEqual(self.call("GET", f"/api/jobs/{job['id']}")[0], 404)
+
+
+if __name__ == "__main__":
+    unittest.main()

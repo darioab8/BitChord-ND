@@ -1,0 +1,6 @@
+# Left unpinned on purpose: YouTube changes often and an old yt-dlp stops
+# working. The image is rebuilt weekly by CI to pick up new releases.
+yt-dlp[default]
+beets[fetchart,embedart]
+requests
+Pillow

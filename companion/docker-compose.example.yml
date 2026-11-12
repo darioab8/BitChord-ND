@@ -1,0 +1,30 @@
+# Add this service next to your Navidrome one (same compose file is easiest).
+services:
+  bitchord-companion:
+    image: ghcr.io/darioab8/bitchord-nd-companion:latest
+    container_name: bitchord-companion
+    restart: unless-stopped
+    # The same user that owns your music folder, so Navidrome can read what
+    # the companion writes. `id -u` / `id -g` on the host tell you.
+    user: "1000:1000"
+    ports:
+      # Keep it on your LAN / VPN only — it downloads things on request.
+      - "8765:8765"
+    environment:
+      # Required. Make one with: openssl rand -hex 24
+      COMPANION_TOKEN: "change-me-to-a-long-random-secret"
+      # Albums go to <your music folder>/YouTube/<Artist>/<Album>/ by default.
+      # The app can ask for another folder per download.
+      DEFAULT_FOLDER: "YouTube"
+      # Optional: rescan Navidrome as soon as an album is in. Needs an admin
+      # user. Without it, Navidrome finds new albums on its own scan/watcher.
+      # NAVIDROME_URL: "http://navidrome:4533"
+      # NAVIDROME_USER: "admin"
+      # NAVIDROME_PASSWORD: "..."
+      # Optional: your own beets config instead of the generated one.
+      # BEETS_CONFIG: "/config/my-beets.yaml"
+    volumes:
+      # The same folder Navidrome reads as its music library.
+      - /path/to/your/music:/music
+      # Job queue, beets library, logs; and cookies.txt for Premium quality.
+      - ./bitchord-companion:/config
