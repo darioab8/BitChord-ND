@@ -1,30 +1,37 @@
-# Add this service next to your Navidrome one (same compose file is easiest).
+# Add one of these next to your Navidrome service (same compose file).
+# Secrets go in a .env file beside the compose file:
+#   COMPANION_TOKEN=<openssl rand -hex 24>
+#   NAVIDROME_ADMIN_USER=... / NAVIDROME_ADMIN_PASSWORD=...   (optional)
 services:
+
+  # Host mode: your own beets on the server imports (see README, "host mode").
   bitchord-companion:
     image: ghcr.io/darioab8/bitchord-nd-companion:latest
-    container_name: bitchord-companion
+    user: "1000:1000"            # the user that owns incoming_music (`id -u`, `id -g`)
     restart: unless-stopped
-    # The same user that owns your music folder, so Navidrome can read what
-    # the companion writes. `id -u` / `id -g` on the host tell you.
-    user: "1000:1000"
     ports:
-      # Keep it on your LAN / VPN only — it downloads things on request.
-      - "8765:8765"
-    environment:
-      # Required. Make one with: openssl rand -hex 24
-      COMPANION_TOKEN: "change-me-to-a-long-random-secret"
-      # Albums go to <your music folder>/YouTube/<Artist>/<Album>/ by default.
-      # The app can ask for another folder per download.
-      DEFAULT_FOLDER: "YouTube"
-      # Optional: rescan Navidrome as soon as an album is in. Needs an admin
-      # user. Without it, Navidrome finds new albums on its own scan/watcher.
-      # NAVIDROME_URL: "http://navidrome:4533"
-      # NAVIDROME_USER: "admin"
-      # NAVIDROME_PASSWORD: "..."
-      # Optional: your own beets config instead of the generated one.
-      # BEETS_CONFIG: "/config/my-beets.yaml"
+      - "8765:8765"              # LAN / VPN only
     volumes:
-      # The same folder Navidrome reads as its music library.
-      - /path/to/your/music:/music
-      # Job queue, beets library, logs; and cookies.txt for Premium quality.
-      - ./bitchord-companion:/config
+      - ./incoming_music:/incoming
+      - ./companion:/config      # queue, job list, cookies.txt
+    environment:
+      - COMPANION_TOKEN=${COMPANION_TOKEN}
+      - IMPORT_MODE=host
+      # Optional: rescan Navidrome right after beets imports (admin user).
+      # - NAVIDROME_URL=http://navidrome:4533
+      # - NAVIDROME_USER=${NAVIDROME_ADMIN_USER}
+      # - NAVIDROME_PASSWORD=${NAVIDROME_ADMIN_PASSWORD}
+
+  # beets mode, instead: the container's own beets imports into the library.
+  # bitchord-companion:
+  #   image: ghcr.io/darioab8/bitchord-nd-companion:latest
+  #   user: "1000:1000"
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8765:8765"
+  #   volumes:
+  #     - ./music:/music
+  #     - ./companion:/config
+  #   environment:
+  #     - COMPANION_TOKEN=${COMPANION_TOKEN}
+  #     - DEFAULT_FOLDER=YouTube

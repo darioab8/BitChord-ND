@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""A stand-in for `beet` in the host-importer tests.
+
+import <dir>: moves the dir's audio files into $FAKE_LIBRARY and remembers
+their comment tag (kept in a sidecar `<file>.comments` written by the test),
+unless $FAKE_SKIP is set. ls -f FMT comments:X: one line per remembered track
+whose comment contains X; $mb_albumid is $FAKE_MBID.
+"""
+import json, os, shutil, sys
+from pathlib import Path
+
+db = Path(os.environ["FAKE_LIBRARY"]) / "db.json"
+tracks = json.loads(db.read_text()) if db.exists() else []
+args = sys.argv[1:]
+if args[:1] == ["-c"]:
+    args = args[2:]
+cmd = args[0]
+if cmd == "import":
+    if os.environ.get("FAKE_FAIL"):
+        print("beets: error: something broke")
+        sys.exit(1)
+    src = Path(args[-1])
+    print(f"Tagging {src}")
+    if os.environ.get("FAKE_SKIP"):
+        print("Skipping: already in library")
+        sys.exit(0)
+    for f in sorted(src.glob("*.opus")):
+        comment = (src / (f.name + ".comments")).read_text() if (src / (f.name + ".comments")).exists() else ""
+        dest = Path(os.environ["FAKE_LIBRARY"]) / f.name
+        shutil.move(str(f), dest)
+        (src / (f.name + ".comments")).unlink(missing_ok=True)
+        tracks.append({"id": len(tracks) + 1, "comments": comment})
+    for leftover in src.iterdir():
+        leftover.unlink()
+    db.write_text(json.dumps(tracks))
+elif cmd == "ls":
+    fmt = args[args.index("-f") + 1]
+    needle = args[-1].split(":", 1)[1]
+    for t in tracks:
+        if needle in t["comments"]:
+            print(fmt.replace("$id", str(t["id"])).replace("$mb_albumid", os.environ.get("FAKE_MBID", "")))

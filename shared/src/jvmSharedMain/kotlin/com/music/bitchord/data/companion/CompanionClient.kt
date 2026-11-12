@@ -52,9 +52,14 @@ data class CompanionHealth(
     @SerialName("ytDlp") val ytDlp: String? = null,
     val beets: String? = null,
     val premiumCookies: Boolean = false,
+    /** "host": the server's own beets imports from its incoming folder; "beets": the companion's. */
+    val importMode: String = "beets",
     val defaultFolder: String = "",
     val navidromeRescan: Boolean = false,
-)
+) {
+    /** Host mode: the user's beets decides where albums go, so there's no folder to pick. */
+    val importsWithHostBeets: Boolean get() = importMode == "host"
+}
 
 @Serializable
 data class CompanionJob(

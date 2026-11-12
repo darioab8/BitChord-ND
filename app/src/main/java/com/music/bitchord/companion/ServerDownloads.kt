@@ -155,10 +155,13 @@ object ServerDownloads {
                 if (++misses > 30) return
             }
         }
+        val detail = job.message.lineSequence().firstOrNull().orEmpty()
         when {
-            job.state == CompanionJob.DONE -> toast("“${job.title}” is on your server")
-            job.state == CompanionJob.SKIPPED -> toast("“${job.title}” was already on your server")
-            job.failed -> toast("Couldn't download “${job.title}”: ${job.message.lineSequence().first()}")
+            job.state == CompanionJob.DONE && detail.contains("as-is") ->
+                toast("“${job.title}” is in your library (as-is: no confident MusicBrainz match)")
+            job.state == CompanionJob.DONE -> toast("“${job.title}” is in your library")
+            job.state == CompanionJob.SKIPPED -> toast("“${job.title}” wasn't imported: $detail")
+            job.failed -> toast("Couldn't download “${job.title}”: $detail")
         }
     }
 

@@ -44,13 +44,13 @@ class CompanionClientTest {
 
     @Test
     fun `health sends the token and reads the answer`() = runTest {
-        server.enqueue(MockResponse().setBody("""{"ok":true,"version":"0.1.0","premiumCookies":true,"defaultFolder":"YouTube","navidromeRescan":false,"extra":1}"""))
+        server.enqueue(MockResponse().setBody("""{"ok":true,"version":"0.1.0","premiumCookies":true,"importMode":"host","defaultFolder":"","navidromeRescan":false,"extra":1}"""))
         val health = client.health()
         val request = server.takeRequest()
         assertEquals("/api/health", request.path)
         assertEquals("Bearer secret-token", request.getHeader("Authorization"))
         assertTrue(health.premiumCookies)
-        assertEquals("YouTube", health.defaultFolder)
+        assertTrue(health.importsWithHostBeets)
     }
 
     @Test

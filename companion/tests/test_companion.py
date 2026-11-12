@@ -274,3 +274,121 @@ class ServerTests(Base):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+HOST_SCRIPT = Path(__file__).resolve().parent.parent / "host" / "bitchord-import.sh"
+FAKE_BEET = Path(__file__).resolve().parent / "fakes" / "beet"
+
+
+class HostModeTests(Base):
+    """The companion and the real host importer script, with a fake beet."""
+
+    def setUp(self):
+        super().setUp()
+        root = Path(self.tmp.name)
+        (root / "incoming").mkdir()
+        (root / "library").mkdir()
+        self.library = root / "library"
+        self.cfg = self.cfg.__class__(**{
+            **self.cfg.__dict__,
+            "import_mode": "host",
+            "inbox_dir": root / "incoming",
+            "host_pickup_timeout": 2.0,
+        })
+        self.env = {
+            **__import__("os").environ,
+            "QUEUE": str(self.cfg.queue_dir),
+            "INCOMING": str(self.cfg.inbox_dir),
+            "OVERLAY": str(HOST_SCRIPT.parent / "beets-auto.yaml"),
+            "BEET": str(FAKE_BEET),
+            "FAKE_LIBRARY": str(self.library),
+        }
+        self.host_stop = threading.Event()
+
+    def tearDown(self):
+        self.host_stop.set()
+        super().tearDown()
+
+    def tools(self, runner):
+        tools = super().tools(runner)
+
+        def tag(path, tags):
+            # The fake beet reads comments from a sidecar file, like beets reads the real tag.
+            if "comments" in tags:
+                path.with_name(path.name + ".comments").write_text(tags["comments"])
+            self.tags[path.name] = tags
+
+        tools.tag = tag
+        return tools
+
+    def start_host(self, **fake_env):
+        """Plays systemd's path unit: runs the script whenever a request shows up."""
+        import subprocess
+
+        env = {**self.env, **fake_env}
+
+        def loop():
+            while not self.host_stop.wait(0.1):
+                if self.cfg.queue_dir.exists() and list(self.cfg.queue_dir.glob("*.request")):
+                    subprocess.run(["sh", str(HOST_SCRIPT)], env=env, check=True)
+
+        threading.Thread(target=loop, daemon=True).start()
+
+    def test_imported_and_matched(self):
+        self.start_host(FAKE_MBID="0b5c-mbid")
+        job = self.queue(tracks=[track(1), track(2)], year=1971, title="Blue", artist="Joni Mitchell")
+        self.run_job(FakeRunner())
+        done = self.store.get(job.id)
+        self.assertEqual(done.state, jobs.DONE, done.message)
+        self.assertEqual(done.message, "Imported by beets")
+        self.assertEqual(sorted(p.name for p in self.library.glob("*.opus")), ["01.opus", "02.opus"])
+        self.assertIn(f"bitchord:{job.id}", self.tags["01.opus"]["comments"])
+        # The album folder is gone from the inbox, and the queue is clean.
+        self.assertEqual(list(self.cfg.inbox_dir.iterdir()), [])
+        self.assertEqual(list(self.cfg.queue_dir.iterdir()), [])
+        # Host mode never touches the music folder itself.
+        self.assertEqual(list(self.cfg.music_dir.iterdir()), [])
+
+    def test_imported_as_is(self):
+        self.start_host(FAKE_MBID="")
+        job = self.queue(tracks=[track(1)])
+        self.run_job(FakeRunner())
+        self.assertEqual(self.store.get(job.id).message, "Imported as-is (no confident MusicBrainz match)")
+
+    def test_skipped_album_stays_in_the_inbox(self):
+        self.start_host(FAKE_SKIP="1")
+        job = self.queue(tracks=[track(1)], title="Blue", artist="Joni Mitchell", year=1971)
+        self.run_job(FakeRunner())
+        skipped = self.store.get(job.id)
+        self.assertEqual(skipped.state, jobs.SKIPPED)
+        self.assertIn("incoming_music/Joni Mitchell - Blue (1971)", skipped.message)
+        self.assertTrue((self.cfg.inbox_dir / "Joni Mitchell - Blue (1971)" / "01.opus").exists())
+
+    def test_beets_error_is_reported_with_its_output(self):
+        self.start_host(FAKE_FAIL="1")
+        job = self.queue(tracks=[track(1)])
+        self.run_job(FakeRunner())
+        failed = self.store.get(job.id)
+        self.assertEqual(failed.state, jobs.FAILED)
+        self.assertIn("something broke", failed.message)
+
+    def test_no_host_importer_fails_with_a_hint(self):
+        job = self.queue(tracks=[track(1)], title="Blue", artist="Joni Mitchell")
+        self.run_job(FakeRunner())
+        failed = self.store.get(job.id)
+        self.assertEqual(failed.state, jobs.FAILED)
+        self.assertIn("bitchord-import.path", failed.message)
+        self.assertEqual(list(self.cfg.queue_dir.glob("*.request")), [])
+        self.assertTrue((self.cfg.inbox_dir / "Joni Mitchell - Blue").is_dir())
+
+    def test_folder_names(self):
+        r = albums.parse({"title": "A/B: C?", "artist": "AC/DC", "tracks": [track(1)], "year": 1980}, "")
+        self.assertEqual(pipeline.album_folder_name(r, "x"), "AC_DC - A_B_ C_ (1980)")
+
+    def test_script_refuses_paths_outside_the_inbox(self):
+        import subprocess
+        self.cfg.queue_dir.mkdir(parents=True)
+        (self.cfg.queue_dir / "abc123abc123.request").write_text("../music\n")
+        subprocess.run(["sh", str(HOST_SCRIPT)], env=self.env, check=True)
+        result = pipeline.parse_result((self.cfg.queue_dir / "abc123abc123.result").read_text())
+        self.assertEqual(result["code"], "2")

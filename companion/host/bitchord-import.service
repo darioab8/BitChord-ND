@@ -1,0 +1,13 @@
+[Unit]
+Description=BitChord ND companion: import downloaded albums with beets
+
+[Service]
+Type=oneshot
+# The user who runs beets: their ~/.config/beets is the config and library used.
+User=dario
+Group=dario
+Environment=QUEUE=/home/dario/navidrome/companion/queue
+Environment=INCOMING=/home/dario/navidrome/incoming_music
+Environment=OVERLAY=/home/dario/.config/bitchord-companion/beets-auto.yaml
+ExecStart=/usr/local/bin/bitchord-import
+Nice=10

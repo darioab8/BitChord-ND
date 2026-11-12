@@ -74,16 +74,19 @@ fun ServerDownloadsScreen(
                 value = config?.baseUrl?.substringAfter("://") ?: "Not set up",
                 onClick = onEditCompanion,
             )
-            RowDivider()
-            SettingsRow(
-                icon = SfIcons.Folder,
-                title = "Folder in your library",
-                value = config?.folder?.ifBlank { null }
-                    ?: health?.defaultFolder?.ifBlank { null }?.let { "$it (default)" }
-                    ?: "Default",
-                enabled = config != null,
-                onClick = onEditFolder,
-            )
+            // With the server's own beets importing, beets' paths decide where albums go.
+            if (health?.importsWithHostBeets != true) {
+                RowDivider()
+                SettingsRow(
+                    icon = SfIcons.Folder,
+                    title = "Folder in your library",
+                    value = config?.folder?.ifBlank { null }
+                        ?: health?.defaultFolder?.ifBlank { null }?.let { "$it (default)" }
+                        ?: "Default",
+                    enabled = config != null,
+                    onClick = onEditFolder,
+                )
+            }
         }
 
         if (config != null) {
@@ -92,6 +95,11 @@ fun ServerDownloadsScreen(
                 when {
                     h != null -> {
                         SettingsRow(title = "Connected", value = "v${h.version.orEmpty()}")
+                        RowDivider()
+                        SettingsRow(
+                            title = "Import",
+                            value = if (h.importsWithHostBeets) "Your beets on the server" else "beets in the companion",
+                        )
                         RowDivider()
                         SettingsRow(
                             title = "Audio",
@@ -132,6 +140,7 @@ private fun jobLabel(job: CompanionJob): String = when (job.state) {
     "queued" -> "Waiting"
     "downloading" -> if (job.total > 0) "${job.progress}/${job.total}" else "Downloading"
     "tagging" -> "Tagging"
+    "importing" -> "Importing"
     "scanning" -> "Scanning"
     CompanionJob.DONE -> "Done"
     CompanionJob.SKIPPED -> "Already there"

@@ -65,7 +65,7 @@
     <label for="url">YouTube Music album link</label>
     <input id="url" placeholder="https://music.youtube.com/playlist?list=OLAK5uy_…">
     <div class="row">
-      <div>
+      <div id="folder-box">
         <label for="folder">Folder in your library</label>
         <input id="folder">
       </div>
@@ -86,6 +86,7 @@
   try { token = localStorage.getItem("companion-token") || ""; } catch (_) {}
   $("token").value = token;
   let timer = null;
+  let hostMode = false;
 
   async function api(method, path, body) {
     const res = await fetch(path, {
@@ -115,14 +116,16 @@
       $("auth-status").textContent = "Connected.";
       const facts = $("facts");
       facts.replaceChildren();
+      hostMode = h.importMode === "host";
       const rows = [
         ["Version", h.version],
         ["yt-dlp", h.ytDlp || "not found"],
-        ["beets", h.beets || "not found"],
+        ["Import", hostMode ? "Your beets on the server, from the incoming folder" : ("beets in the companion: " + (h.beets || "not found"))],
         ["Audio", h.premiumCookies ? "Premium cookies: AAC 256 kbps where available" : "No cookies: Opus ~130–160 kbps"],
-        ["Default folder", h.defaultFolder || "(library root)"],
+        ...(hostMode ? [] : [["Default folder", h.defaultFolder || "(library root)"]]),
         ["Navidrome rescan", h.navidromeRescan ? "on" : "off — Navidrome picks albums up on its own scan"],
       ];
+      $("folder-box").hidden = hostMode;
       for (const [k, v] of rows) { facts.append(el("dt", null, k), el("dd", null, v)); }
       if (!$("folder").value) $("folder").value = h.defaultFolder || "";
       for (const id of ["info", "add", "jobs-card"]) $(id).hidden = false;
@@ -148,6 +151,7 @@
       left.append(el("div", "job-title", j.title));
       left.append(el("div", "job-meta", [j.artist, j.folder && ("→ " + j.folder)].filter(Boolean).join("  ")));
       const badgeClass = j.state === "done" ? "badge done" : (j.state === "failed" ? "badge failed" : "badge");
+      if (hostMode) j.folder = "";
       head.append(left, el("span", badgeClass, j.state));
       li.append(head);
       if (!j.finished && j.total > 0) {
@@ -179,7 +183,7 @@
     if (!url) { $("add-status").textContent = "Paste an album link first."; return; }
     $("queue").disabled = true;
     try {
-      const j = await api("POST", "/api/jobs", { url, folder: $("folder").value.trim() });
+      const j = await api("POST", "/api/jobs", hostMode ? { url } : { url, folder: $("folder").value.trim() });
       $("add-status").textContent = "Queued: " + j.title;
       $("url").value = "";
       refresh();

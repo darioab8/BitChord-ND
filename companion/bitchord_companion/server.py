@@ -45,7 +45,9 @@ class App:
             "ytDlp": self.versions.get("yt-dlp"),
             "beets": self.versions.get("beets"),
             "premiumCookies": self.cfg.cookies is not None,
-            "defaultFolder": self.cfg.default_folder,
+            "importMode": self.cfg.import_mode,
+            # Host mode: beets on the server decides where albums go.
+            "defaultFolder": "" if self.cfg.host_import else self.cfg.default_folder,
             "navidromeRescan": self.cfg.navidrome_configured,
         }
 

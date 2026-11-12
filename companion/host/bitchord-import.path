@@ -1,0 +1,11 @@
+[Unit]
+Description=BitChord ND companion: watch for albums to import
+
+[Path]
+# Starts bitchord-import.service whenever a request is waiting; systemd starts
+# it again after a run if more arrived meanwhile.
+PathExistsGlob=/home/dario/navidrome/companion/queue/*.request
+Unit=bitchord-import.service
+
+[Install]
+WantedBy=multi-user.target

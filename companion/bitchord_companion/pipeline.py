@@ -11,6 +11,7 @@ import re
 import shutil
 import subprocess
 import threading
+import time
 import urllib.request
 from collections import deque
 from dataclasses import dataclass
@@ -28,6 +29,16 @@ AUDIO_EXTENSIONS = {".opus", ".m4a", ".mp3", ".ogg", ".webm", ".aac", ".flac"}
 FORMAT = "141/251/bestaudio[acodec=opus]/bestaudio/best"
 
 ITEM = re.compile(r"\[download\] Downloading item (\d+) of (\d+)")
+
+#: Written into every downloaded file's comment tag. Says where the file came
+#: from, and lets the host importer find exactly this job's tracks in the beets
+#: library afterwards (`beet ls comments:bitchord:<job id>`).
+def marker(job_id: str) -> str:
+    return f"BitChord ND · YouTube Music · bitchord:{job_id}"
+
+
+#: Host mode: how long the host's beets may take over one album.
+HOST_IMPORT_TIMEOUT = 60 * 60
 
 
 class Cancelled(Exception):
@@ -143,12 +154,21 @@ def run(job: jobs.Job, cfg: Config, beets_config: Path, store: jobs.JobStore, to
         if not files:
             raise StepFailed("yt-dlp finished without any audio files")
         if request.tracks:
-            _tag(request, files, tools)
+            _tag(request, files, tools, job.id)
+        else:
+            for f in files:
+                try:
+                    tools.tag(f, {"comments": marker(job.id)})
+                except Exception:
+                    pass
         if request.cover_url:
             try:
                 (staging / "cover.jpg").write_bytes(tools.fetch(request.cover_url))
             except Exception:  # cover art is a nicety; beets' fetchart looks online too
                 pass
+
+        if cfg.host_import:
+            return _host_import(job, request, cfg, staging, store, tools, cancel)
 
         store.update(job.id, state=jobs.TAGGING, message="Tagging with beets")
         library_dir = cfg.music_dir / request.folder if request.folder else cfg.music_dir
@@ -203,7 +223,7 @@ def _download(job, request, cfg, staging, store, tools, cancel) -> None:
         raise StepFailed("yt-dlp failed:\n" + out)
 
 
-def _tag(request: albums.AlbumRequest, files: list[Path], tools: Tools) -> None:
+def _tag(request: albums.AlbumRequest, files: list[Path], tools: Tools, job_id: str) -> None:
     total = len(request.tracks)
     by_number = {int(f.stem): f for f in files if f.stem.isdigit()}
     for number, track in enumerate(request.tracks, 1):
@@ -217,6 +237,7 @@ def _tag(request: albums.AlbumRequest, files: list[Path], tools: Tools) -> None:
             "albumartist": request.artist,
             "track": number,
             "tracktotal": total,
+            "comments": marker(job_id),
         }
         if request.year:
             tags["year"] = request.year
@@ -224,6 +245,112 @@ def _tag(request: albums.AlbumRequest, files: list[Path], tools: Tools) -> None:
             tools.tag(f, {k: v for k, v in tags.items() if v})
         except Exception:
             pass  # beets still matches on the audio files without these hints
+
+
+# ---- host mode ----------------------------------------------------------------------
+
+
+def album_folder_name(request: albums.AlbumRequest, job_id: str) -> str:
+    """"Artist - Album (Year)", safe as one folder name."""
+    name = " - ".join(p for p in (request.artist, request.title) if p) or f"YouTube album {job_id}"
+    if request.year:
+        name += f" ({request.year})"
+    name = re.sub(r'[\x00-\x1f/\\<>:"|?*]', "_", name).strip(" .")
+    return (name or f"YouTube album {job_id}")[:150]
+
+
+def _unique(path: Path) -> Path:
+    if not path.exists():
+        return path
+    n = 2
+    while (candidate := path.with_name(f"{path.name} ({n})")).exists():
+        n += 1
+    return candidate
+
+
+def parse_result(text: str) -> dict[str, str]:
+    """The host importer's answer: `key=value` lines (code, imported, matched)."""
+    out = {}
+    for line in text.splitlines():
+        key, sep, value = line.partition("=")
+        if sep:
+            out[key.strip()] = value.strip()
+    return out
+
+
+def _host_import(job, request, cfg: Config, staging: Path, store, tools: Tools, cancel: threading.Event) -> Result:
+    """Hands the album to the host's beets and reports what it did.
+
+    The album appears in the inbox in one rename (beets never sees half an
+    album), then `<job>.request` in the queue names its folder. The host
+    importer (companion/host/bitchord-import.sh) renames the request to
+    `<job>.working` when it starts and writes `<job>.result` when it's done.
+    """
+    cfg.inbox_dir.mkdir(parents=True, exist_ok=True)
+    cfg.queue_dir.mkdir(parents=True, exist_ok=True)
+    final = _unique(cfg.inbox_dir / album_folder_name(request, job.id))
+    hidden = cfg.inbox_dir / f".bitchord-{job.id}"  # beets ignores dot-folders
+    if hidden.exists():
+        shutil.rmtree(hidden)
+    shutil.move(str(staging), str(hidden))
+    hidden.rename(final)
+    where = f"incoming_music/{final.name}"
+
+    store.update(job.id, state=jobs.IMPORTING, message="Waiting for beets on the server")
+    request_file = cfg.queue_dir / f"{job.id}.request"
+    working = cfg.queue_dir / f"{job.id}.working"
+    result_file = cfg.queue_dir / f"{job.id}.result"
+    log_file = cfg.queue_dir / f"{job.id}.log"
+    for stale in (working, result_file, log_file):
+        stale.unlink(missing_ok=True)
+    tmp = cfg.queue_dir / f".{job.id}.request"
+    tmp.write_text(final.name + "\n")
+    tmp.rename(request_file)
+
+    started = time.monotonic()
+    picked = False
+    try:
+        while not result_file.exists():
+            if cancel.wait(1.0):
+                if request_file.exists():
+                    request_file.unlink(missing_ok=True)
+                    return Result(jobs.CANCELLED, f"Cancelled before beets started. The album is in {where}")
+                return Result(jobs.CANCELLED, f"Cancelled, but beets had already started on {where}")
+            if not picked and (working.exists() or not request_file.exists()):
+                picked = True
+                store.update(job.id, message="beets is importing")
+            waited = time.monotonic() - started
+            if not picked and waited > cfg.host_pickup_timeout:
+                request_file.unlink(missing_ok=True)
+                raise StepFailed(
+                    "beets on the server didn't pick the album up. Is the host importer set up "
+                    f"(systemctl status bitchord-import.path)? The album is in {where}"
+                )
+            if waited > HOST_IMPORT_TIMEOUT:
+                raise StepFailed(f"beets didn't finish within an hour. The album is in {where}")
+
+        result = parse_result(result_file.read_text())
+        log = log_file.read_text(errors="replace") if log_file.exists() else ""
+        code = int(result.get("code", "1") or 1)
+        imported = int(result.get("imported", "0") or 0)
+        matched = result.get("matched", "") == "yes"
+        if code != 0:
+            raise StepFailed(f"beets failed (exit {code}). The album is still in {where}:\n{log[-3000:]}")
+        if imported == 0:
+            return Result(
+                jobs.SKIPPED,
+                f"beets didn't import it (already in your library, or skipped). It's in {where}",
+            )
+        message = "Imported by beets" if matched else "Imported as-is (no confident MusicBrainz match)"
+        if cfg.navidrome_configured:
+            store.update(job.id, state=jobs.SCANNING, message="Asking Navidrome to rescan")
+            problem = tools.rescan()
+            if problem:
+                message += f"; Navidrome rescan failed: {problem}"
+        return Result(jobs.DONE, message)
+    finally:
+        for f in (working, result_file, log_file):
+            f.unlink(missing_ok=True)
 
 
 def _audio_files(folder: Path) -> list[Path]:

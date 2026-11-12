@@ -1,0 +1,26 @@
+# BitChord ND companion — rules for unattended imports.
+#
+# Loaded on top of your normal beets config (beet -c this-file import ...), so
+# everything else — paths, plugins, library — stays yours. Only these change,
+# and only for albums the companion downloads.
+
+import:
+  # Nobody is there to answer prompts.
+  quiet: yes
+  # Not confident enough to apply a match on its own? Keep the album with the
+  # tags it came with (YouTube's title, artist, album, track numbers).
+  quiet_fallback: asis
+  # Already in the library: leave it in incoming_music for you to look at.
+  duplicate_action: skip
+  timid: no
+
+match:
+  # How close a MusicBrainz release must be for beets to apply it unasked.
+  # beets' default is 0.04; 0.10 still accepts a release whose track titles
+  # are spelled a little differently, but nothing looser.
+  strong_rec_thresh: 0.10
+  # A release with tracks missing from the download, or downloaded tracks it
+  # doesn't have, is never a confident match: those albums go in as-is.
+  max_rec:
+    missing_tracks: low
+    unmatched_tracks: low

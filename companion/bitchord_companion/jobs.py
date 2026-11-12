@@ -14,6 +14,7 @@ from . import albums
 QUEUED = "queued"
 DOWNLOADING = "downloading"
 TAGGING = "tagging"
+IMPORTING = "importing"  # host mode: waiting for the host's beets
 SCANNING = "scanning"
 DONE = "done"
 SKIPPED = "skipped"  # beets already had the album
@@ -21,7 +22,7 @@ FAILED = "failed"
 CANCELLED = "cancelled"
 
 FINISHED = {DONE, SKIPPED, FAILED, CANCELLED}
-RUNNING = {DOWNLOADING, TAGGING, SCANNING}
+RUNNING = {DOWNLOADING, TAGGING, IMPORTING, SCANNING}
 
 
 @dataclass
@@ -64,6 +65,13 @@ class JobStore:
             self._db.execute(
                 "update jobs set state = ?, message = ? where state in (?, ?, ?)",
                 (QUEUED, "Restarted after the companion stopped", DOWNLOADING, TAGGING, SCANNING),
+            )
+            # Already handed to the host's beets: downloading it again would
+            # leave a second copy in the inbox. Say where it is instead.
+            self._db.execute(
+                "update jobs set state = ?, message = ? where state = ?",
+                (FAILED, "The companion restarted while beets was importing. "
+                         "Check incoming_music: the album may still be there.", IMPORTING),
             )
             self._db.commit()
 
