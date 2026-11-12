@@ -23,6 +23,12 @@ page for trying it from a browser: paste an album link and watch the queue.
    [`docker-compose.example.yml`](docker-compose.example.yml): mount the same
    music folder Navidrome uses at `/music`, and a folder for its own data at
    `/config`. Set `user:` to the owner of your music folder.
+   The image is `ghcr.io/darioab8/bitchord-nd-companion`: `:latest` is built
+   from `main`, and each branch gets its own tag (for example
+   `:nd-phase8-server-downloads`). New GitHub packages start out private: either
+   make it public (GitHub → your profile → Packages → bitchord-nd-companion →
+   Package settings → Change visibility) or `docker login ghcr.io` first. You
+   can also build it yourself: `docker build -t bitchord-nd-companion companion/`.
 3. `docker compose up -d bitchord-companion`, then open
    `http://<server>:8765`, paste the token and try an album link
    (`https://music.youtube.com/playlist?list=OLAK5uy_…`).
