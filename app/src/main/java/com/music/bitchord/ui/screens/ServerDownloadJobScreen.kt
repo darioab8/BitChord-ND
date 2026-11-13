@@ -74,17 +74,18 @@ fun ServerDownloadJobScreen(
 
         SettingsGroup(footer = problem) {
             when {
-                j == null && problem == null -> SettingsRow(title = "Loading…")
-                j == null -> SettingsRow(title = "Couldn't load this download")
+                j == null && problem == null -> InfoRow(title = "Loading…")
+                j == null -> InfoRow(title = "Couldn't load this download")
                 else -> {
                     if (j.artist.isNotBlank()) {
-                        SettingsRow(title = "Artist", value = j.artist)
+                        InfoRow(title = "Artist", value = j.artist)
                         RowDivider()
                     }
-                    SettingsRow(title = "Status", value = stateLabel(j))
-                    if (j.summary.isNotBlank()) {
+                    InfoRow(title = "Status", value = stateLabel(j))
+                    // The summary repeats the status while it's running ("Downloading 2 of 21").
+                    if (j.finished && j.summary.isNotBlank()) {
                         RowDivider()
-                        SettingsRow(title = j.summary)
+                        InfoRow(title = j.summary)
                     }
                 }
             }
@@ -123,7 +124,7 @@ fun ServerDownloadJobScreen(
             SettingsGroup(header = "Tracks") {
                 j.tracks.forEachIndexed { index, track ->
                     if (index > 0) RowDivider()
-                    SettingsRow(
+                    InfoRow(
                         title = "${track.number}. ${track.title?.ifBlank { null } ?: "Track ${track.number}"}",
                         subtitle = if (track.state == "failed") {
                             track.error?.removePrefix("ERROR: ")?.ifBlank { null } ?: "Failed"

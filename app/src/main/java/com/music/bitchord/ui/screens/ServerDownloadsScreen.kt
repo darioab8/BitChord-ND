@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -95,22 +97,22 @@ fun ServerDownloadsScreen(
                 val h = health
                 when {
                     h != null -> {
-                        SettingsRow(title = "Connected", value = "v${h.version.orEmpty()}")
+                        InfoRow(title = "Connected", value = "v${h.version.orEmpty()}")
                         RowDivider()
-                        SettingsRow(
+                        InfoRow(
                             title = "Import",
                             value = if (h.importsWithHostBeets) "Your beets on the server" else "beets in the companion",
                         )
                         RowDivider()
-                        SettingsRow(
+                        InfoRow(
                             title = "Audio",
                             value = if (h.premiumCookies) "Premium (AAC up to 256 kbps)" else "Opus (~130–160 kbps)",
                         )
                         RowDivider()
-                        SettingsRow(title = "Navidrome rescan", value = if (h.navidromeRescan) "Right away" else "On its own schedule")
+                        InfoRow(title = "Navidrome rescan", value = if (h.navidromeRescan) "Right away" else "On its own schedule")
                     }
-                    problem != null -> SettingsRow(title = "Not reachable", subtitle = problem)
-                    else -> SettingsRow(title = "Checking…")
+                    problem != null -> InfoRow(title = "Not reachable", subtitle = problem)
+                    else -> InfoRow(title = "Checking…")
                 }
             }
 
@@ -149,4 +151,26 @@ private fun jobLabel(job: CompanionJob): String = when (job.state) {
     CompanionJob.FAILED -> "Failed"
     CompanionJob.CANCELLED -> "Cancelled"
     else -> job.state
+}
+
+/**
+ * A row that only shows something. [SettingsRow] puts a chevron after any
+ * value, which reads as "tap me"; these rows don't open anything.
+ */
+@Composable
+internal fun InfoRow(title: String, value: String? = null, subtitle: String? = null) {
+    SettingsRow(
+        title = title,
+        subtitle = subtitle,
+        trailing = value?.let {
+            {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
+        },
+    )
 }

@@ -26,7 +26,7 @@ from .config import Config
 from .worker import Worker
 
 log = logging.getLogger("companion")
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 MAX_BODY = 512 * 1024
 JOB_PATH = re.compile(r"^/api/jobs/([0-9a-f]{12})(/cancel|/retry)?$")
 
