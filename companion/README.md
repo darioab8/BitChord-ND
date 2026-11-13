@@ -115,6 +115,15 @@ All `/api` calls need `Authorization: Bearer <token>`.
 | `GET /api/jobs/<id>` | one job: `state` is queued, downloading, tagging, importing, scanning, done, skipped, failed or cancelled |
 | `POST /api/jobs/<id>/cancel` | |
 | `DELETE /api/jobs/<id>` | forget a finished job |
+| `GET /api/shelves` | every shelf (name, description, count, first covers, album ids) |
+| `POST /api/shelves` | `{name, description?, albums?}` |
+| `GET /api/shelves/<id>` | one shelf with its albums |
+| `PUT /api/shelves/<id>` | `{name?, description?, order?: [albumId]}` |
+| `DELETE /api/shelves/<id>` | |
+| `POST /api/shelves/<id>/albums` | `{album: {id, title, artist?, year?, cover?, coverArt?}}` |
+| `POST /api/shelves/<id>/albums/remove` | `{id}` |
+
+Shelves are the app's lists of albums. They're kept in `config/shelves.db`, so back that folder up with the rest. A server album's artwork is stored as its cover-art id, never as a URL: Subsonic cover URLs carry the login's token.
 
 ## Development
 

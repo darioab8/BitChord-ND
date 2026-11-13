@@ -410,6 +410,11 @@ data class ShelfItem(
      * picture the player can show. Drawn as a 16:9 card, as the web player does.
      */
     val isVideo: Boolean = false,
+    /**
+     * BitChord ND: four covers drawn as a 2×2 collage in place of
+     * [thumbnailUrl] — a shelf of albums. Empty everywhere else.
+     */
+    val collage: List<String> = emptyList(),
 )
 
 /** How a shelf's items are laid out — the web player's `ShelfLayout`, by the same rules. */

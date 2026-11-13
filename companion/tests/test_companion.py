@@ -354,6 +354,55 @@ HOST_SCRIPT = Path(__file__).resolve().parent.parent / "host" / "bitchord-import
 FAKE_BEET = Path(__file__).resolve().parent / "fakes" / "beet"
 
 
+class ShelfTests(ServerTests):
+    YT = {"id": "MPREb_abc", "title": "Reign in Blood", "artist": "Slayer", "year": 1986,
+          "cover": "https://lh3.googleusercontent.com/x=w544"}
+    ND = {"id": "nd:album:42", "title": "Lateralus", "artist": "Tool", "coverArt": "al-42",
+          "cover": "http://navidrome.local/rest/getCoverArt?id=al-42&t=secret"}
+
+    def test_create_add_reorder_remove_delete(self):
+        code, shelf = self.call("POST", "/api/shelves", {"name": " No letters ", "description": "1989, 1999"})
+        self.assertEqual(code, 201)
+        self.assertEqual(shelf["name"], "No letters")
+        sid = shelf["id"]
+        self.call("POST", f"/api/shelves/{sid}/albums", {"album": self.YT})
+        code, shelf = self.call("POST", f"/api/shelves/{sid}/albums", {"album": self.ND})
+        self.assertEqual(code, 200)
+        self.assertEqual([a["id"] for a in shelf["albums"]], ["MPREb_abc", "nd:album:42"])
+        # The server cover URL carries a login token: never stored, only the id.
+        self.assertNotIn("cover", shelf["albums"][1])
+        self.assertEqual(shelf["albums"][1]["coverArt"], "al-42")
+        self.assertEqual(shelf["albums"][0]["cover"], self.YT["cover"])
+        # Adding again doesn't duplicate.
+        _, shelf = self.call("POST", f"/api/shelves/{sid}/albums", {"album": self.YT})
+        self.assertEqual(shelf["count"], 2)
+        _, listing = self.call("GET", "/api/shelves")
+        self.assertEqual(listing["shelves"][0]["albumIds"], ["MPREb_abc", "nd:album:42"])
+        self.assertEqual(len(listing["shelves"][0]["preview"]), 2)
+        _, shelf = self.call("PUT", f"/api/shelves/{sid}", {"order": ["nd:album:42"], "name": "Numbers"})
+        self.assertEqual([a["id"] for a in shelf["albums"]], ["nd:album:42", "MPREb_abc"])
+        self.assertEqual(shelf["name"], "Numbers")
+        self.assertEqual(shelf["description"], "1989, 1999")
+        _, shelf = self.call("POST", f"/api/shelves/{sid}/albums/remove", {"id": "nd:album:42"})
+        self.assertEqual([a["id"] for a in shelf["albums"]], ["MPREb_abc"])
+        self.assertEqual(self.call("DELETE", f"/api/shelves/{sid}")[0], 200)
+        self.assertEqual(self.call("GET", f"/api/shelves/{sid}")[0], 404)
+        self.assertEqual(self.call("GET", "/api/shelves")[1], {"shelves": []})
+
+    def test_bad_shelves(self):
+        self.assertEqual(self.call("POST", "/api/shelves", {"name": "  "})[0], 400)
+        self.assertEqual(self.call("POST", "/api/shelves", {"name": "x" * 101})[0], 400)
+        _, shelf = self.call("POST", "/api/shelves", {"name": "Ok"})
+        sid = shelf["id"]
+        self.assertEqual(self.call("POST", f"/api/shelves/{sid}/albums", {"album": {"id": "x"}})[0], 400)
+        self.assertEqual(self.call("POST", f"/api/shelves/{sid}/albums", {})[0], 400)
+        self.assertEqual(self.call("PUT", "/api/shelves/000000000000", {"name": "a"})[0], 404)
+        self.assertEqual(self.call("GET", "/api/shelves", token=None)[0], 401)
+
+    def test_health_says_shelves(self):
+        self.assertTrue(self.call("GET", "/api/health")[1]["shelves"])
+
+
 class HostModeTests(Base):
     """The companion and the real host importer script, with a fake beet."""
 

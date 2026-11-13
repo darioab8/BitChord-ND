@@ -9,6 +9,14 @@
     POST   /api/jobs/<id>/retry {"skipFailed": bool}  the failed tracks again, or import without them
     DELETE /api/jobs/<id>       forget a finished job
 
+    GET    /api/shelves                     every shelf, newest change first
+    POST   /api/shelves                     {name, description?, albums?}
+    GET    /api/shelves/<id>                one shelf with its albums
+    PUT    /api/shelves/<id>                {name?, description?, order?}
+    DELETE /api/shelves/<id>
+    POST   /api/shelves/<id>/albums         {album} add (or refresh) one album
+    POST   /api/shelves/<id>/albums/remove  {id} take one off
+
 Every /api call needs `Authorization: Bearer <COMPANION_TOKEN>`.
 """
 from __future__ import annotations
@@ -21,24 +29,27 @@ import shutil
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib import resources
 
-from . import albums, jobs
+from . import albums, jobs, shelves
 from .config import Config
 from .worker import Worker
 
 log = logging.getLogger("companion")
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 MAX_BODY = 512 * 1024
 JOB_PATH = re.compile(r"^/api/jobs/([0-9a-f]{12})(/cancel|/retry)?$")
+SHELF_PATH = re.compile(r"^/api/shelves/([0-9a-f]{12})(/albums|/albums/remove)?$")
 
 
 class App:
     """What the handler needs, bundled so tests can build one without a socket."""
 
-    def __init__(self, cfg: Config, store: jobs.JobStore, worker: Worker, versions: dict):
+    def __init__(self, cfg: Config, store: jobs.JobStore, worker: Worker, versions: dict,
+                 shelf_store: shelves.ShelfStore | None = None):
         self.cfg = cfg
         self.store = store
         self.worker = worker
         self.versions = versions
+        self.shelves = shelf_store or shelves.ShelfStore(cfg.config_dir / "shelves.db")
 
     def health(self) -> dict:
         return {
@@ -51,9 +62,17 @@ class App:
             # Host mode: beets on the server decides where albums go.
             "defaultFolder": "" if self.cfg.host_import else self.cfg.default_folder,
             "navidromeRescan": self.cfg.navidrome_configured,
+            "shelves": True,
         }
 
     def handle(self, method: str, path: str, body: bytes | None) -> tuple[int, dict]:
+        if path == "/api/shelves" or path.startswith("/api/shelves/"):
+            try:
+                return self.handle_shelves(method, path, body)
+            except json.JSONDecodeError:
+                return 400, {"error": "Body is not JSON"}
+            except shelves.BadShelf as e:
+                return 400, {"error": str(e)}
         if path == "/api/health" and method == "GET":
             return 200, self.health()
         if path == "/api/jobs" and method == "GET":
@@ -96,6 +115,48 @@ class App:
                 shutil.rmtree(self.cfg.work_dir / job_id, ignore_errors=True)
                 return 200, {"ok": True}
         return 404, {"error": "Not found"}
+
+    def handle_shelves(self, method: str, path: str, body: bytes | None) -> tuple[int, dict]:
+        def data() -> dict:
+            d = json.loads(body or b"{}")
+            if not isinstance(d, dict):
+                raise shelves.BadShelf("Body must be an object")
+            return d
+
+        if path == "/api/shelves":
+            if method == "GET":
+                return 200, {"shelves": [s.summary() for s in self.shelves.all()]}
+            if method == "POST":
+                return 201, self.shelves.create(data()).detail()
+            return 405, {"error": "Method not allowed"}
+        m = SHELF_PATH.match(path)
+        if not m:
+            return 404, {"error": "Not found"}
+        shelf_id, action = m.group(1), m.group(2)
+        shelf = None
+        if action is None:
+            if method == "GET":
+                shelf = self.shelves.get(shelf_id)
+            elif method == "PUT":
+                shelf = self.shelves.edit(shelf_id, data())
+            elif method == "DELETE":
+                if not self.shelves.delete(shelf_id):
+                    return 404, {"error": "No such shelf"}
+                return 200, {"ok": True}
+            else:
+                return 405, {"error": "Method not allowed"}
+        elif action == "/albums" and method == "POST":
+            shelf = self.shelves.add_album(shelf_id, data().get("album"))
+        elif action == "/albums/remove" and method == "POST":
+            album_id = data().get("id")
+            if not isinstance(album_id, str) or not album_id:
+                raise shelves.BadShelf("Album id is required")
+            shelf = self.shelves.remove_album(shelf_id, album_id)
+        else:
+            return 405, {"error": "Method not allowed"}
+        if shelf is None:
+            return 404, {"error": "No such shelf"}
+        return 200, shelf.detail()
 
     def authorized(self, header: str | None) -> bool:
         if not header or not header.startswith("Bearer "):
@@ -143,6 +204,9 @@ def make_handler(app: App):
 
         def do_POST(self):
             self._dispatch("POST")
+
+        def do_PUT(self):
+            self._dispatch("PUT")
 
         def do_DELETE(self):
             self._dispatch("DELETE")

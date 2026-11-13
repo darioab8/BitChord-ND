@@ -117,6 +117,12 @@ fun BrowseActionsMenu(
      * in the Navidrome library. Null for anything else, or with no companion set up.
      */
     onDownloadToServer: (() -> Unit)? = null,
+    /** BitChord ND: puts an album on one of the owner's shelves (or takes it off). */
+    onAddToShelf: (() -> Unit)? = null,
+    /** BitChord ND: takes the album off the shelf whose page it was held on. */
+    onRemoveFromShelf: (() -> Unit)? = null,
+    /** BitChord ND: what Delete says, for something that isn't a playlist (a shelf). */
+    deleteLabel: String? = null,
     /**
      * Shares the release's own YouTube Music link — the album/playlist
      * counterpart to a track's own Share tile in [SongActionsMenu]. Null for
@@ -233,6 +239,12 @@ fun BrowseActionsMenu(
             onDownloadToServer?.let {
                 ActionRow(SfIcons.Storage, "Download to server", onClick = it)
             }
+            onAddToShelf?.let {
+                ActionRow(SfIcons.Album, "Add to shelf", onClick = it)
+            }
+            onRemoveFromShelf?.let {
+                ActionRow(SfIcons.Trash, "Remove from shelf", onClick = it)
+            }
             onOpen?.let {
                 ActionRow(
                     SfIcons.Open,
@@ -266,12 +278,13 @@ fun BrowseActionsMenu(
                 if (confirmingDelete) {
                     ActionRow(
                         icon = SfIcons.Trash,
-                        label = stringResource(R.string.delete_playlist_confirmation, target.title),
+                        label = deleteLabel?.let { "$it \u201C${target.title}\u201D?" }
+                            ?: stringResource(R.string.delete_playlist_confirmation, target.title),
                         tint = MaterialTheme.colorScheme.error,
                         onClick = onDelete,
                     )
                 } else {
-                    ActionRow(SfIcons.Trash, stringResource(R.string.delete_playlist)) { confirmingDelete = true }
+                    ActionRow(SfIcons.Trash, deleteLabel ?: stringResource(R.string.delete_playlist)) { confirmingDelete = true }
                 }
             }
             if (onDeleteDownload != null) {

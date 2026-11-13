@@ -97,6 +97,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -135,6 +136,12 @@ import com.music.bitchord.companion.ServerDownloads
 import com.music.bitchord.data.companion.CompanionConfig
 import com.music.bitchord.ui.screens.ServerDownloadsScreen
 import com.music.bitchord.ui.screens.ServerDownloadJobScreen
+import com.music.bitchord.data.shelves.AlbumShelves
+import com.music.bitchord.ui.screens.ShelfPickerSheet
+import com.music.bitchord.ui.screens.ShelfEditSheet
+import com.music.bitchord.ui.screens.ShelfEdit
+import com.music.bitchord.ui.screens.AlbumShelfPageHost
+import com.music.bitchord.data.companion.ShelfAlbum
 import com.music.bitchord.data.subsonic.SubsonicIds
 import com.music.bitchord.data.AppUpdateChecker
 import com.music.bitchord.data.LocalMediaRepository
@@ -772,11 +779,18 @@ private fun BitChordApp(
     /** Its entries as YouTube has them now — fetched fresh when the sheet opens. */
     var reorderEntries by remember { mutableStateOf<UiState<List<Song>>>(UiState.Loading) }
     var reorderSaving by remember { mutableStateOf(false) }
+    /** BitChord ND: the shelf whose page the held album card was on, for "Remove from shelf". */
+    var browseFromShelf by remember { mutableStateOf<String?>(null) }
+    /** BitChord ND: the shelf being created (id null) or edited, or null. */
+    var shelfEditing by remember { mutableStateOf<ShelfEdit?>(null) }
+    /** BitChord ND: the album "Add to shelf" was asked for, or null. */
+    var shelfPickerFor by remember { mutableStateOf<ShelfAlbum?>(null) }
     /** An album or playlist: lifted when it was a hold, else hung off the ⋯ that was tapped. */
     val openBrowseMenu: (BrowseTarget) -> Unit = { target ->
         browseMenuOrigin = LongPressOrigin.consume()
         browseMenuAnchor = MenuAnchor.consume()
         browseRenameInSheet = false
+        browseFromShelf = null
         browseActions = target
     }
     val autoplay by AppSettings.autoplay.collectAsStateWithLifecycle()
@@ -834,6 +848,10 @@ private fun BitChordApp(
     // [AppNavigator]. Whatever was opened last is what is on screen, and back
     // (the gesture or the bar's button alike) undoes exactly that.
     val navigator = viewModel.navigator
+    // BitChord ND: a shelf card opens the shelf's page, wherever it was tapped.
+    SideEffect {
+        viewModel.openShelf = { id, title -> navigator.push(AppRoute.AlbumShelfPage(id, title)) }
+    }
     val detailStack by viewModel.detailStack.collectAsStateWithLifecycle()
     val topEntry = navigator.visibleEntry(detailStack.size)
     // An artist's open shelf is drawn by the artist page itself, so it is not a
@@ -866,10 +884,12 @@ private fun BitChordApp(
     val hideTopPicks by AppSettings.hideTopPicks.collectAsStateWithLifecycle()
     val hideHomeMoods by AppSettings.hideHomeMoods.collectAsStateWithLifecycle()
     // Only what Home draws: Top Picks reads the unfiltered feed from the view model.
-    val visibleHomeState = remember(homeState, hideHomeVideos, hideRecents) {
+    // BitChord ND: the shelves rows follow every change at once, not the next reload.
+    val liveShelves by AlbumShelves.shelves.collectAsStateWithLifecycle()
+    val visibleHomeState = remember(homeState, hideHomeVideos, hideRecents, liveShelves) {
         val loaded = homeState as? UiState.Success
-        if (loaded != null && (hideHomeVideos || hideRecents)) {
-            var shelves = loaded.data
+        if (loaded != null) {
+            var shelves = AlbumShelves.placeOnHome(loaded.data, liveShelves)
             if (hideRecents) shelves = shelves.filterNot { it.title == YtMusicRepository.RECENT_TITLE }
             if (hideHomeVideos) shelves = shelves.withoutVideos()
             UiState.Success(shelves)
@@ -908,7 +928,20 @@ private fun BitChordApp(
     val exploreState by viewModel.explore.collectAsStateWithLifecycle()
     val selectedMoodGenre by viewModel.selectedMoodGenre.collectAsStateWithLifecycle()
     val moodGenreShelves by viewModel.moodGenreShelves.collectAsStateWithLifecycle()
-    val libraryState by viewModel.library.collectAsStateWithLifecycle()
+    val loadedLibraryState by viewModel.library.collectAsStateWithLifecycle()
+    val libraryState = remember(loadedLibraryState, liveShelves) {
+        (loadedLibraryState as? UiState.Success)?.let { loaded ->
+            UiState.Success(
+                loaded.data.copy(
+                    shelves = AlbumShelves.placeInLibrary(
+                        loaded.data.shelves,
+                        liveShelves,
+                        YtMusicRepository.PLAYLISTS_SHELF,
+                    ),
+                ),
+            )
+        } ?: loadedLibraryState
+    }
     val filter by viewModel.filter.collectAsStateWithLifecycle()
     val searchSource by viewModel.searchSource.collectAsStateWithLifecycle()
     val libraryResults by viewModel.libraryResults.collectAsStateWithLifecycle()
@@ -2976,8 +3009,16 @@ private fun BitChordApp(
                                 contentPadding = listPadding,
                             )
                         } else if (pageRoute is AppRoute.LibraryShowAll) {
-                            pageRoute.shelf.let { shelf ->
+                            pageRoute.shelf.let { snapshot ->
+                                // BitChord ND: the shelves grid follows edits made from it.
+                                val isShelves = snapshot.title == AlbumShelves.LIBRARY_TITLE
+                                val shelf = if (isShelves) {
+                                    AlbumShelves.row(AlbumShelves.LIBRARY_TITLE, liveShelves.orEmpty())
+                                } else {
+                                    snapshot
+                                }
                                 LibraryGridPage(
+                                    onNewShelf = if (isShelves) ({ shelfEditing = ShelfEdit(id = null) }) else null,
                                     shelf = shelf,
                                     gridState = libraryShowAllGridState,
                                     onItemClick = onLibraryItemClick,
@@ -3093,6 +3134,30 @@ private fun BitChordApp(
                                 title = pageRoute.title,
                                 contentPadding = listPadding,
                                 onRemoved = { navigator.pop() },
+                            )
+                        } else if (pageRoute is AppRoute.AlbumShelfPage) {
+                            AlbumShelfPageHost(
+                                shelfId = pageRoute.shelfId,
+                                contentPadding = listPadding,
+                                onEdit = { shelf -> shelfEditing = ShelfEdit(shelf.id, shelf.name, shelf.description) },
+                                onPlay = { shelf, shuffled ->
+                                    withBrowseSongs(
+                                        BrowseTarget(AlbumShelves.id(shelf.id), shelf.name, "", type = BrowseType.OTHER),
+                                    ) { songs ->
+                                        if (songs.isNotEmpty() && shuffled) {
+                                            QueueShuffle.enableForNextQueue()
+                                            play(songs, songs.indices.random())
+                                        } else if (songs.isNotEmpty()) {
+                                            play(songs, 0)
+                                        }
+                                    }
+                                },
+                                onItemClick = onLibraryItemClick,
+                                onItemLongPress = { item ->
+                                    onBrowseLongPress(item)
+                                    // After: opening the menu forgets any shelf it came from.
+                                    browseFromShelf = pageRoute.shelfId
+                                },
                             )
                         } else if (pageRoute == AppRoute.Downloads) {
                             DownloadManagerPage(
@@ -3711,6 +3776,7 @@ private fun BitChordApp(
                                 // does nothing; see [onBrowseLongPress].
                                 onShelfItemLongPress = onBrowseLongPress,
                                 onNewPlaylist = { creatingPlaylist = true },
+                                onNewShelf = { shelfEditing = ShelfEdit(id = null) },
                                 onImportSpotifyPlaylist = if (NdFeatures.YOUTUBE) ({ showSpotifyImportDialog = true }) else null,
                                 onShowAll = { shelf -> navigator.push(AppRoute.LibraryShowAll(shelf)) },
                                 replay = {
@@ -3833,6 +3899,8 @@ private fun BitChordApp(
                         AppRoute.Sources -> stringResource(R.string.sources)
                         AppRoute.ServerDownloads -> "Download to server"
                         is AppRoute.ServerDownloadJob -> route.title
+                        is AppRoute.AlbumShelfPage ->
+                            liveShelves?.firstOrNull { it.id == route.shelfId }?.name ?: route.title
                         AppRoute.ListenTogether -> stringResource(R.string.listen_together)
                         AppRoute.WearOs -> stringResource(R.string.wear_os_page_title)
                         AppRoute.Equalizer -> stringResource(R.string.equalizer)
@@ -5075,6 +5143,28 @@ private fun BitChordApp(
             )
         }
 
+        // ---- BitChord ND: shelves ----
+        shelfPickerFor?.let { album ->
+            ShelfPickerSheet(
+                album = album,
+                onDismiss = { shelfPickerFor = null },
+                onNewShelf = {
+                    shelfPickerFor = null
+                    shelfEditing = ShelfEdit(id = null, firstAlbum = album)
+                },
+            )
+        }
+        shelfEditing?.let { edit ->
+            ShelfEditSheet(
+                edit = edit,
+                onDismiss = { shelfEditing = null },
+                onDeleted = { sid ->
+                    val r = navigator.visibleRoute()
+                    if (r is AppRoute.AlbumShelfPage && r.shelfId == sid) navigator.pop()
+                },
+            )
+        }
+
         // ---- Album / playlist actions ----
         // Opened by holding a card on any tab, or from the release page's own
         // overflow. What a track's long-press menu is to one song, this is to
@@ -5130,10 +5220,39 @@ private fun BitChordApp(
             // One of the offline player's own playlists, which are the user's
             // to rename and delete — all but Liked, which is the app's.
             val offlineEditable = OfflinePlaylists.get(target.browseId)?.takeUnless { it.isLiked }
+            // BitChord ND: a shelf card, which renames and deletes through the companion.
+            val shelfId = AlbumShelves.shelfId(target.browseId)
+            val shelfEditable = shelfId?.let {
+                UserPlaylist(playlistId = it, title = target.title, subtitle = "", thumbnailUrl = null)
+            }
+            // An album (the server's or YouTube's) can go on a shelf.
+            val shelvesAvailable by AlbumShelves.shelves.collectAsStateWithLifecycle()
+            val shelfable = shelvesAvailable != null && target.browseId != null &&
+                target.type == BrowseType.ALBUM && !target.browseId.startsWith("local:")
+            val heldOnShelf = browseFromShelf
             BrowseActionsMenu(
+                onAddToShelf = target.browseId?.takeIf { shelfable }?.let { id ->
+                    {
+                        browseActions = null
+                        shelfPickerFor = AlbumShelves.albumFrom(id, target.title, target.subtitle, target.thumbnailUrl)
+                    }
+                },
+                onRemoveFromShelf = heldOnShelf?.let { sid ->
+                    target.browseId?.let { id ->
+                        {
+                            browseActions = null
+                            scope.launch {
+                                AlbumShelves.remove(sid, id)
+                                    .onSuccess { showQueueNotice("Removed from ${it.name}") }
+                                    .onFailure { showQueueNotice(it.message ?: context.getString(R.string.failed)) }
+                            }
+                        }
+                    }
+                },
+                deleteLabel = if (shelfId != null) "Delete shelf" else null,
                 // The live answer, not the one the target was built with.
                 target = target.copy(
-                    playlist = playlist ?: offlineEditable?.let {
+                    playlist = shelfEditable ?: playlist ?: offlineEditable?.let {
                         UserPlaylist(playlistId = it.id, title = it.title, subtitle = "", thumbnailUrl = null)
                     },
                 ),
@@ -5188,7 +5307,7 @@ private fun BitChordApp(
                                 )
                             },
                     )
-                }.takeIf { downloadable },
+                }.takeIf { downloadable && shelfId == null },
                 // BitChord ND: a YouTube album into the Navidrome library.
                 onDownloadToServer = act { songs ->
                     ServerDownloads.download(
@@ -5241,7 +5360,15 @@ private fun BitChordApp(
                         browseActions = null
                     }
                 },
-                onRename = playlist?.let { p ->
+                onRename = shelfId?.let { sid ->
+                    { name: String ->
+                        browseActions = null
+                        scope.launch {
+                            AlbumShelves.edit(sid, name = name)
+                                .onFailure { showQueueNotice(it.message ?: context.getString(R.string.failed)) }
+                        }
+                    }
+                } ?: playlist?.let { p ->
                     { name: String ->
                         browseActions = null
                         viewModel.renamePlaylist(p, name)
@@ -5280,7 +5407,19 @@ private fun BitChordApp(
                         }
                     }
                 },
-                onDelete = playlist?.let { p ->
+                onDelete = shelfId?.let { sid ->
+                    {
+                        browseActions = null
+                        scope.launch {
+                            AlbumShelves.delete(sid)
+                                .onSuccess {
+                                    val r = navigator.visibleRoute()
+                                    if (r is AppRoute.AlbumShelfPage && r.shelfId == sid) navigator.pop()
+                                }
+                                .onFailure { showQueueNotice(it.message ?: context.getString(R.string.failed)) }
+                        }
+                    }
+                } ?: playlist?.let { p ->
                     {
                         browseActions = null
                         viewModel.deletePlaylist(p)

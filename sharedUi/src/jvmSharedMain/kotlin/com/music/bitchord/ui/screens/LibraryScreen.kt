@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.music.bitchord.data.YtMusicRepository
+import com.music.bitchord.data.shelves.AlbumShelves
 import com.music.bitchord.data.model.HomeShelf
 import com.music.bitchord.data.model.LibraryPage
 import com.music.bitchord.data.model.ShelfItem
@@ -116,6 +117,8 @@ fun LibraryScreen(
     deviceItems: List<ShelfItem>,
     /** The big "Library" heading; the desktop's pages carry none. */
     showTitle: Boolean = true,
+    /** BitChord ND: the Shelves row's first tile, which makes a shelf. */
+    onNewShelf: (() -> Unit)? = null,
 ) {
     val pinnedPlaylists by AppUi.host.pinnedPlaylists.collectAsStateWithLifecycle()
     val onDevice = stringResource(Res.string.on_device)
@@ -202,7 +205,24 @@ fun LibraryScreen(
                     }
                     shelves.forEach { shelf ->
                         item(key = "shelf:${shelf.title}") {
-                            if (shelf.title == PLAYLISTS) {
+                            if (shelf.title == AlbumShelves.LIBRARY_TITLE) {
+                                LibraryGridShelf(
+                                    shelf = shelf,
+                                    onItemClick = onShelfItemClick,
+                                    onItemLongPress = onShelfItemLongPress,
+                                    onShowAll = { onShowAll(shelf) },
+                                    leadingCard = onNewShelf?.let { create ->
+                                        @Composable {
+                                            NewShelfCard(
+                                                icon = BitChordIcons.Plus,
+                                                label = NEW_SHELF,
+                                                subtitle = NEW_SHELF_SUBTITLE,
+                                                onClick = create,
+                                            )
+                                        }
+                                    },
+                                )
+                            } else if (shelf.title == PLAYLISTS) {
                                 val pinnedFirst = shelf.pinnedFirst(pinnedPlaylists)
                                 PlaylistShelf(
                                     shelf = pinnedFirst,
@@ -400,6 +420,8 @@ fun LibraryGridPage(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
     onNewPlaylist: (() -> Unit)? = null,
+    /** BitChord ND: the Shelves grid's first tile. */
+    onNewShelf: (() -> Unit)? = null,
 ) {
     // Re-read live rather than trusting [shelf] to already be sorted: this page
     // is opened from a snapshot (see `AppRoute.LibraryShowAll`), and a
@@ -428,6 +450,17 @@ fun LibraryGridPage(
                         label = stringResource(Res.string.new_playlist),
                         subtitle = stringResource(Res.string.saved_to_youtube_music),
                         onClick = onNewPlaylist,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+            if (onNewShelf != null) {
+                item(key = "leading-shelf") {
+                    NewShelfCard(
+                        icon = BitChordIcons.Plus,
+                        label = NEW_SHELF,
+                        subtitle = NEW_SHELF_SUBTITLE,
+                        onClick = onNewShelf,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
@@ -473,6 +506,9 @@ private fun HomeShelf.sortedForLibrary(sort: LibrarySort): HomeShelf = when (sor
         items = items.sortedWith(compareByDescending(String.CASE_INSENSITIVE_ORDER) { it.title }),
     )
 }
+
+private const val NEW_SHELF = "New shelf"
+private const val NEW_SHELF_SUBTITLE = "A list of albums"
 
 /** The library feed whose cards are the account's own — see [PlaylistShelf]. */
 private const val PLAYLISTS = YtMusicRepository.PLAYLISTS_SHELF

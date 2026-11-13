@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -996,12 +997,30 @@ internal fun ShelfCard(
                         .thumbnailBorder(RoundedCornerShape(12.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                 ) {
-                    AsyncImage(
-                        model = item.thumbnailUrl.artworkAt(CARD_ART_PX),
-                        contentDescription = null,
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                    )
+                    if (item.collage.size >= 4) {
+                        // BitChord ND: a shelf of albums, as four covers.
+                        Column(Modifier.fillMaxSize()) {
+                            item.collage.take(4).chunked(2).forEach { pair ->
+                                Row(Modifier.fillMaxWidth().weight(1f)) {
+                                    pair.forEach { url ->
+                                        AsyncImage(
+                                            model = url,
+                                            contentDescription = null,
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        AsyncImage(
+                            model = item.thumbnailUrl.artworkAt(CARD_ART_PX),
+                            contentDescription = null,
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
                     if (isCurrent && isPlaying) SearchPlayingBars(Modifier.align(Alignment.Center))
                 }
             }

@@ -3,6 +3,7 @@ package com.music.bitchord.ui
 import com.music.bitchord.data.Catalog
 import com.music.bitchord.data.NdFeatures
 import com.music.bitchord.auth.SubsonicSession
+import com.music.bitchord.data.shelves.AlbumShelves
 import com.music.bitchord.data.subsonic.SubsonicIds
 import com.music.bitchord.data.SearchPage
 import android.app.Application
@@ -2664,7 +2665,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     ?: BrowseType.PLAYLIST
             browseId.startsWith(LocalGroups.PREFIX) -> LocalGroups.typeOf(browseId) ?: fallback
             browseId.startsWith(OfflinePlaylists.PREFIX) -> BrowseType.PLAYLIST
-            // BitChord ND: Subsonic pages.
+            // BitChord ND: Subsonic pages. A shelf is neither album nor playlist.
+            AlbumShelves.isShelf(browseId) -> BrowseType.OTHER
             SubsonicIds.albumId(browseId) != null -> BrowseType.ALBUM
             SubsonicIds.artistId(browseId) != null -> BrowseType.ARTIST
             SubsonicIds.playlistId(browseId) != null -> BrowseType.PLAYLIST
@@ -2714,6 +2716,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * BitChord ND: opens a shelf's own page. Set by the activity, which owns
+     * that route; every card, row and menu that opens things goes through
+     * [openDetail], so a shelf is caught there.
+     */
+    var openShelf: ((shelfId: String, title: String) -> Unit)? = null
+
     fun openDetail(
         browseId: String,
         title: String,
@@ -2721,6 +2730,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         thumbnailUrl: String? = null,
         type: BrowseType = BrowseType.OTHER,
     ) {
+        AlbumShelves.shelfId(browseId)?.let { id ->
+            openShelf?.invoke(id, title)
+            return
+        }
         // A fast double tap used to push two identical loading pages and launch
         // two identical browse requests. Besides wasting the connection, both
         // completions then raced to update every matching browse id in the

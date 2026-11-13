@@ -57,6 +57,11 @@ object ServerDownloads {
         app = context.applicationContext
         prefs = EncryptedPrefs.open(app, "bitchordnd_companion", "bitchordnd_companion_plain")
         _config.value = read()
+        // Shelves live in the same companion.
+        com.music.bitchord.data.shelves.AlbumShelves.client = { client() }
+        com.music.bitchord.data.shelves.AlbumShelves.serverCover = { id, size ->
+            com.music.bitchord.auth.SubsonicSession.client?.coverArtUrl(id, size)
+        }
     }
 
     // ---- settings ----------------------------------------------------------------
@@ -68,11 +73,13 @@ object ServerDownloads {
             .putString("folder", config.folder)
             .apply()
         _config.value = config.takeIf { it.isComplete }
+        scope.launch { com.music.bitchord.data.shelves.AlbumShelves.refresh() }
     }
 
     fun clear() {
         prefs.edit().clear().apply()
         _config.value = null
+        scope.launch { com.music.bitchord.data.shelves.AlbumShelves.refresh() }
     }
 
     private fun read(): CompanionConfig? {

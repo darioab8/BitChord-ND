@@ -23,6 +23,8 @@ sealed interface AppRoute {
     data object ServerDownloads : AppRoute
     /** BitChord ND: one download to the server, track by track. */
     data class ServerDownloadJob(val jobId: String, val title: String) : AppRoute
+    /** BitChord ND: a shelf of albums, opened from its card. */
+    data class AlbumShelfPage(val shelfId: String, val title: String) : AppRoute
     data object ListenTogether : AppRoute
     data object WearOs : AppRoute
     data object Equalizer : AppRoute

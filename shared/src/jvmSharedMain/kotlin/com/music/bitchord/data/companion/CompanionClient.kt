@@ -7,6 +7,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
@@ -56,6 +60,8 @@ data class CompanionHealth(
     val importMode: String = "beets",
     val defaultFolder: String = "",
     val navidromeRescan: Boolean = false,
+    /** Companion 0.3.0 and later keep the owner's shelves. */
+    val shelves: Boolean = false,
 ) {
     /** Host mode: the user's beets decides where albums go, so there's no folder to pick. */
     val importsWithHostBeets: Boolean get() = importMode == "host"
@@ -120,6 +126,48 @@ data class AlbumDownload(
 @Serializable
 data class AlbumTrack(val videoId: String, val title: String, val artist: String)
 
+/**
+ * One album on a shelf, as the companion stores it. [coverArt] is a Subsonic
+ * cover-art id (server albums), [cover] a YouTube artwork URL; the companion
+ * never keeps a Subsonic URL, which would carry the login's token.
+ */
+@Serializable
+data class ShelfAlbum(
+    val id: String,
+    val title: String,
+    val artist: String = "",
+    val year: Int? = null,
+    val cover: String? = null,
+    val coverArt: String? = null,
+)
+
+/** A shelf: the owner's own list of albums. [albums] is filled only by [CompanionClient.shelf]. */
+@Serializable
+data class AlbumShelf(
+    val id: String,
+    val name: String,
+    val description: String = "",
+    val count: Int = 0,
+    val updated: Double = 0.0,
+    /** The first few albums, for the card's collage. */
+    val preview: List<ShelfAlbum> = emptyList(),
+    /** Every album's id, in the list only, so "Add to shelf" can tick the ones it's on. */
+    val albumIds: List<String> = emptyList(),
+    val albums: List<ShelfAlbum> = emptyList(),
+)
+
+@Serializable
+private data class ShelfList(val shelves: List<AlbumShelf> = emptyList())
+
+@Serializable
+private data class NewShelf(val name: String, val description: String = "", val albums: List<ShelfAlbum> = emptyList())
+
+@Serializable
+private data class AlbumBody(val album: ShelfAlbum)
+
+@Serializable
+private data class IdBody(val id: String)
+
 @Serializable
 private data class JobList(val jobs: List<CompanionJob> = emptyList())
 
@@ -155,6 +203,40 @@ class CompanionClient(
     suspend fun remove(id: String) {
         call("DELETE", "api/jobs/$id")
     }
+
+    // ---- shelves ---------------------------------------------------------------
+
+    suspend fun shelves(): List<AlbumShelf> = decode<ShelfList>(call("GET", "api/shelves")).shelves
+
+    suspend fun shelf(id: String): AlbumShelf = decode(call("GET", "api/shelves/$id"))
+
+    suspend fun createShelf(name: String, description: String = "", albums: List<ShelfAlbum> = emptyList()): AlbumShelf =
+        decode(call("POST", "api/shelves", json.encodeToString(NewShelf(name, description, albums))))
+
+    /** Only what's passed changes; [order] is the albums' ids in their new order. */
+    suspend fun editShelf(
+        id: String,
+        name: String? = null,
+        description: String? = null,
+        order: List<String>? = null,
+    ): AlbumShelf {
+        val body = buildJsonObject {
+            name?.let { put("name", it) }
+            description?.let { put("description", it) }
+            order?.let { ids -> put("order", JsonArray(ids.map { JsonPrimitive(it) })) }
+        }
+        return decode(call("PUT", "api/shelves/$id", body.toString()))
+    }
+
+    suspend fun deleteShelf(id: String) {
+        call("DELETE", "api/shelves/$id")
+    }
+
+    suspend fun addToShelf(id: String, album: ShelfAlbum): AlbumShelf =
+        decode(call("POST", "api/shelves/$id/albums", json.encodeToString(AlbumBody(album))))
+
+    suspend fun removeFromShelf(id: String, albumId: String): AlbumShelf =
+        decode(call("POST", "api/shelves/$id/albums/remove", json.encodeToString(IdBody(albumId))))
 
     private inline fun <reified T> decode(body: String): T = json.decodeFromString(body)
 
