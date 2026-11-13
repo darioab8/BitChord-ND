@@ -355,7 +355,14 @@ class SubsonicRepository(private val client: () -> SubsonicClient?) : CatalogRep
                 owned = playlist.owner == null || playlist.owner == c.credentials.username,
                 header = InnertubeParser.BrowseHeader(
                     playlist.name,
-                    listOfNotNull("Playlist", playlist.owner, "${playlist.songCount} songs").joinToString(" • "),
+                    // The songs the server returned, not its stored songCount: that
+                    // also counts entries whose files are missing, which it leaves
+                    // out of the list, so the header would disagree with the page.
+                    listOfNotNull(
+                        "Playlist",
+                        playlist.owner,
+                        if (songs.size == 1) "1 song" else "${songs.size} songs",
+                    ).joinToString(" • "),
                     c.cover(playlist.coverArt, HEADER_PX),
                 ),
                 description = playlist.comment,

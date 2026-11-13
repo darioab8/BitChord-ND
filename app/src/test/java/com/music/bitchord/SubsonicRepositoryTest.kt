@@ -111,12 +111,14 @@ class SubsonicRepositoryTest {
     @Test
     fun `playlist rows get index entry ids`() = runTest {
         routes["getPlaylist"] = ok(
-            """"playlist":{"id":"p1","name":"Mix","owner":"dario","songCount":2,
+            """"playlist":{"id":"p1","name":"Mix","owner":"dario","songCount":3,
             "entry":[{"id":"a","title":"A","artist":"X"},{"id":"b","title":"B","artist":"Y"}]}""",
         )
         val page = repo.browseSongs("VL" + SubsonicIds.playlist("p1")).getOrThrow()
         assertEquals(listOf("nd:idx:0", "nd:idx:1"), page.songs.map { it.setVideoId })
         assertEquals(true, page.owned)
+        // Navidrome's songCount says 3 (one entry's file is missing); the page lists 2.
+        assertEquals("Playlist • dario • 2 songs", page.header?.subtitle)
     }
 
     @Test
