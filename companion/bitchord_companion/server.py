@@ -6,6 +6,7 @@
     POST   /api/jobs            queue an album (see albums.parse)
     GET    /api/jobs/<id>       one job
     POST   /api/jobs/<id>/cancel
+    POST   /api/jobs/<id>/retry {"skipFailed": bool}  the failed tracks again, or import without them
     DELETE /api/jobs/<id>       forget a finished job
 
 Every /api call needs `Authorization: Bearer <COMPANION_TOKEN>`.
@@ -16,6 +17,7 @@ import hmac
 import json
 import logging
 import re
+import shutil
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib import resources
 
@@ -26,7 +28,7 @@ from .worker import Worker
 log = logging.getLogger("companion")
 VERSION = "0.1.0"
 MAX_BODY = 512 * 1024
-JOB_PATH = re.compile(r"^/api/jobs/([0-9a-f]{12})(/cancel)?$")
+JOB_PATH = re.compile(r"^/api/jobs/([0-9a-f]{12})(/cancel|/retry)?$")
 
 
 class App:
@@ -70,16 +72,29 @@ class App:
             return 202, self.store.add(request).public()
         m = JOB_PATH.match(path)
         if m:
-            job_id, cancel = m.group(1), m.group(2)
-            if cancel and method == "POST":
+            job_id, action = m.group(1), m.group(2)
+            if action == "/cancel" and method == "POST":
                 if not self.worker.cancel(job_id):
                     return 409, {"error": "That job isn't queued or running"}
-                return 200, self.store.get(job_id).public()
-            if not cancel and method == "GET":
+                return 200, self.store.get(job_id).public(detail=True)
+            if action == "/retry" and method == "POST":
+                try:
+                    data = json.loads(body or b"{}")
+                except json.JSONDecodeError:
+                    return 400, {"error": "Body is not JSON"}
+                job = self.store.retry(job_id, skip_failed=bool(data.get("skipFailed")))
+                if job is None:
+                    return 409, {"error": "Only failed or cancelled downloads can be retried"}
+                return 200, job.public(detail=True)
+            if action is None and method == "GET":
                 job = self.store.get(job_id)
-                return (200, job.public()) if job else (404, {"error": "No such job"})
-            if not cancel and method == "DELETE":
-                return (200, {"ok": True}) if self.store.remove(job_id) else (409, {"error": "Only finished jobs can be removed"})
+                return (200, job.public(detail=True)) if job else (404, {"error": "No such job"})
+            if action is None and method == "DELETE":
+                if not self.store.remove(job_id):
+                    return 409, {"error": "Only finished jobs can be removed"}
+                # Tracks kept for a retry go with the job.
+                shutil.rmtree(self.cfg.work_dir / job_id, ignore_errors=True)
+                return 200, {"ok": True}
         return 404, {"error": "Not found"}
 
     def authorized(self, header: str | None) -> bool:

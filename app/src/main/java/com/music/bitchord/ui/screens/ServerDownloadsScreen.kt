@@ -32,6 +32,7 @@ fun ServerDownloadsScreen(
     contentPadding: PaddingValues,
     onEditCompanion: () -> Unit,
     onEditFolder: () -> Unit,
+    onOpenJob: (CompanionJob) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val config by ServerDownloads.config.collectAsStateWithLifecycle()
@@ -121,9 +122,10 @@ fun ServerDownloadsScreen(
                             title = job.title,
                             subtitle = listOfNotNull(
                                 job.artist.ifBlank { null },
-                                job.message.lineSequence().firstOrNull()?.ifBlank { null },
+                                job.summary.ifBlank { null },
                             ).joinToString(" · "),
                             value = jobLabel(job),
+                            onClick = { onOpenJob(job) },
                         )
                     }
                 }

@@ -168,6 +168,16 @@
         b.onclick = () => api("POST", `/api/jobs/${j.id}/cancel`).then(refresh).catch(() => {});
         actions.append(b);
       } else {
+        if (j.retryable) {
+          const retry = el("button", "quiet", j.failedTracks ? "Retry failed tracks" : "Retry");
+          retry.onclick = () => api("POST", `/api/jobs/${j.id}/retry`, {}).then(refresh).catch(() => {});
+          actions.append(retry);
+          if (j.failedTracks) {
+            const skip = el("button", "quiet", "Import without them");
+            skip.onclick = () => api("POST", `/api/jobs/${j.id}/retry`, { skipFailed: true }).then(refresh).catch(() => {});
+            actions.append(skip);
+          }
+        }
         const b = el("button", "quiet", "Remove");
         b.onclick = () => api("DELETE", `/api/jobs/${j.id}`).then(refresh).catch(() => {});
         actions.append(b);

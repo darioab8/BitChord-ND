@@ -156,9 +156,65 @@ class PipelineTests(Base):
         self.run_job(FakeRunner(fail_tracks={2}))
         failed = self.store.get(job.id)
         self.assertEqual(failed.state, jobs.FAILED)
-        self.assertIn("1 of 3 tracks", failed.message)
-        self.assertIn("Song 2", failed.message)
+        first_line = failed.message.splitlines()[0]
+        self.assertIn("2. Song 2 didn't download (1 of 3 failed)", first_line)
+        self.assertIn("Video unavailable", failed.message)
+        self.assertEqual(failed.failed_tracks, 1)
+        self.assertEqual([t["state"] for t in failed.tracks], ["done", "failed", "done"])
         self.assertEqual(list(self.cfg.music_dir.iterdir()), [])
+        # The two good tracks are kept for a retry.
+        self.assertEqual(sorted(p.name for p in (self.cfg.work_dir / job.id).iterdir()), ["01.opus", "03.opus"])
+
+    def test_retry_downloads_only_the_failed_tracks(self):
+        job = self.queue(tracks=[track(1), track(2), track(3)])
+        self.run_job(FakeRunner(fail_tracks={2}))
+        self.assertIsNotNone(self.store.retry(job.id, skip_failed=False))
+        runner = FakeRunner()
+        self.run_job(runner)
+        done = self.store.get(job.id)
+        self.assertEqual(done.state, jobs.DONE, done.message)
+        downloads = [c for c in runner.calls if c[0] == "yt-dlp"]
+        self.assertEqual(len(downloads), 1)
+        self.assertIn("watch?v=abcdefghi02", downloads[0][-1])
+        self.assertEqual(
+            sorted(p.name for p in (self.cfg.music_dir / "YouTube").iterdir()), ["01.opus", "02.opus", "03.opus"]
+        )
+        self.assertFalse((self.cfg.work_dir / job.id).exists())
+
+    def test_import_without_the_failed_tracks(self):
+        job = self.queue(tracks=[track(1), track(2), track(3)])
+        self.run_job(FakeRunner(fail_tracks={2}))
+        self.store.retry(job.id, skip_failed=True)
+        runner = FakeRunner(fail_tracks={2})
+        self.run_job(runner)
+        done = self.store.get(job.id)
+        self.assertEqual(done.state, jobs.DONE, done.message)
+        self.assertEqual([c for c in runner.calls if c[0] == "yt-dlp"], [])
+        self.assertEqual([t["state"] for t in done.tracks], ["done", "skipped", "done"])
+        self.assertEqual(sorted(p.name for p in (self.cfg.music_dir / "YouTube").iterdir()), ["01.opus", "03.opus"])
+        self.assertEqual(self.tags["03.opus"]["tracktotal"], 3)
+
+    def test_only_failed_or_cancelled_jobs_retry(self):
+        job = self.queue(tracks=[track(1)])
+        self.assertIsNone(self.store.retry(job.id, skip_failed=False))
+        self.run_job(FakeRunner())
+        self.assertIsNone(self.store.retry(job.id, skip_failed=False))
+
+    def test_old_databases_get_track_state(self):
+        import sqlite3
+        path = self.cfg.config_dir / "old.db"
+        db = sqlite3.connect(str(path))
+        db.execute("""create table jobs (id text primary key, state text, title text, artist text, folder text,
+                      progress integer, total integer, message text, created real, updated real, request text)""")
+        req = albums.parse({"title": "A", "tracks": [track(1)]}, "").to_json()
+        db.execute("insert into jobs values ('abcabcabcabc','failed','A','','',0,1,'x',1,1,?)", (json.dumps(req),))
+        db.commit()
+        db.close()
+        store = jobs.JobStore(path)
+        old = store.get("abcabcabcabc")
+        self.assertEqual(old.tracks, [])
+        self.assertTrue(old.retryable)
+        store.close()
 
     def test_url_mode_reports_progress(self):
         job = self.queue(url="https://music.youtube.com/playlist?list=OLAK5uy_abc", title="")
@@ -263,6 +319,24 @@ class ServerTests(Base):
     def test_bad_requests(self):
         self.assertEqual(self.call("POST", "/api/jobs", {"url": "https://evil.example/x"})[0], 400)
         self.assertEqual(self.call("GET", "/api/jobs/000000000000")[0], 404)
+
+    def test_detail_retry_and_remove_clears_kept_tracks(self):
+        _, job = self.call("POST", "/api/jobs", {"title": "A", "tracks": [track(1), track(2)]})
+        code, detail = self.call("GET", f"/api/jobs/{job['id']}")
+        self.assertEqual([t["state"] for t in detail["tracks"]], ["waiting", "waiting"])
+        self.assertNotIn("tracks", self.call("GET", "/api/jobs")[1]["jobs"][0])
+        self.assertEqual(self.call("POST", f"/api/jobs/{job['id']}/retry", {})[0], 409)
+        self.store.update(job["id"], state=jobs.FAILED)
+        self.store.update_track(job["id"], 2, jobs.TRACK_FAILED, "ERROR: gone")
+        kept = self.cfg.work_dir / job["id"]
+        kept.mkdir(parents=True)
+        (kept / "01.opus").write_bytes(b"x")
+        code, retried = self.call("POST", f"/api/jobs/{job['id']}/retry", {"skipFailed": True})
+        self.assertEqual((code, retried["state"]), (200, "queued"))
+        self.assertEqual(retried["tracks"][1]["state"], "skipped")
+        self.store.update(job["id"], state=jobs.FAILED)
+        self.assertEqual(self.call("DELETE", f"/api/jobs/{job['id']}")[0], 200)
+        self.assertFalse(kept.exists())
 
     def test_cancel_queued_then_remove(self):
         _, job = self.call("POST", "/api/jobs", {"title": "A", "tracks": [track(1)]})

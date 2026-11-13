@@ -74,6 +74,39 @@ class CompanionClientTest {
     }
 
     @Test
+    fun `job details carry the tracks, and retry and remove reach the right calls`() = runTest {
+        server.enqueue(
+            MockResponse().setBody(
+                """{"id":"abc123abc123","state":"failed","title":"S&M","message":"7. Master of Puppets didn't download (1 of 21 failed). Retry it, or import the album without it.\n7. Master of Puppets: ERROR: Video unavailable",
+                "finished":true,"failedTracks":1,"retryable":true,
+                "tracks":[{"number":6,"title":"The Thing That Should Not Be","state":"done","error":""},
+                          {"number":7,"title":"Master of Puppets","state":"failed","error":"ERROR: Video unavailable"}]}""",
+            ),
+        )
+        val job = client.job("abc123abc123")
+        assertEquals("/api/jobs/abc123abc123", server.takeRequest().path)
+        assertEquals(1, job.failedTracks)
+        assertTrue(job.retryable)
+        assertEquals("failed", job.tracks[1].state)
+        assertEquals("ERROR: Video unavailable", job.tracks[1].error)
+        assertTrue(job.summary.startsWith("7. Master of Puppets didn't download"))
+        assertFalse(job.summary.contains("\n"))
+
+        server.enqueue(MockResponse().setBody("""{"id":"abc123abc123","state":"queued"}"""))
+        client.retry("abc123abc123", skipFailed = true)
+        val retry = server.takeRequest()
+        assertEquals("POST", retry.method)
+        assertEquals("/api/jobs/abc123abc123/retry", retry.path)
+        assertEquals("true", Json.parseToJsonElement(retry.body.readUtf8()).jsonObject["skipFailed"]!!.jsonPrimitive.content)
+
+        server.enqueue(MockResponse().setBody("""{"ok":true}"""))
+        client.remove("abc123abc123")
+        val remove = server.takeRequest()
+        assertEquals("DELETE", remove.method)
+        assertEquals("/api/jobs/abc123abc123", remove.path)
+    }
+
+    @Test
     fun `errors carry the companion's reason`() = runTest {
         server.enqueue(MockResponse().setResponseCode(401).setBody("""{"error":"Wrong or missing token"}"""))
         try {

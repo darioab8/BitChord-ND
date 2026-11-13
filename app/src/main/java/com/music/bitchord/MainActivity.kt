@@ -134,6 +134,7 @@ import com.music.bitchord.data.NdFeatures
 import com.music.bitchord.companion.ServerDownloads
 import com.music.bitchord.data.companion.CompanionConfig
 import com.music.bitchord.ui.screens.ServerDownloadsScreen
+import com.music.bitchord.ui.screens.ServerDownloadJobScreen
 import com.music.bitchord.data.subsonic.SubsonicIds
 import com.music.bitchord.data.AppUpdateChecker
 import com.music.bitchord.data.LocalMediaRepository
@@ -3084,6 +3085,14 @@ private fun BitChordApp(
                                 contentPadding = listPadding,
                                 onEditCompanion = { showCompanionEditor = true },
                                 onEditFolder = { showCompanionFolder = true },
+                                onOpenJob = { job -> navigator.push(AppRoute.ServerDownloadJob(job.id, job.title)) },
+                            )
+                        } else if (pageRoute is AppRoute.ServerDownloadJob) {
+                            ServerDownloadJobScreen(
+                                jobId = pageRoute.jobId,
+                                title = pageRoute.title,
+                                contentPadding = listPadding,
+                                onRemoved = { navigator.pop() },
                             )
                         } else if (pageRoute == AppRoute.Downloads) {
                             DownloadManagerPage(
@@ -3823,6 +3832,7 @@ private fun BitChordApp(
                         AppRoute.AccountScrobbling -> stringResource(R.string.account_scrobbling)
                         AppRoute.Sources -> stringResource(R.string.sources)
                         AppRoute.ServerDownloads -> "Download to server"
+                        is AppRoute.ServerDownloadJob -> route.title
                         AppRoute.ListenTogether -> stringResource(R.string.listen_together)
                         AppRoute.WearOs -> stringResource(R.string.wear_os_page_title)
                         AppRoute.Equalizer -> stringResource(R.string.equalizer)

@@ -137,6 +137,38 @@ object ServerDownloads {
         }
     }
 
+    /** One download with its tracks, for its page. */
+    suspend fun job(id: String): Result<CompanionJob> {
+        val c = client() ?: return Result.failure(IllegalStateException("Download to server isn't set up"))
+        return runCatching { c.job(id) }.recoverCatching { throw Exception(describe(it), it) }
+    }
+
+    /**
+     * Runs a failed or cancelled download again, then follows it like a new
+     * one (toast when it's done). See [CompanionClient.retry].
+     */
+    suspend fun retry(id: String, skipFailed: Boolean): Result<CompanionJob> {
+        val c = client() ?: return Result.failure(IllegalStateException("Download to server isn't set up"))
+        return runCatching { c.retry(id, skipFailed) }
+            .recoverCatching { throw Exception(describe(it), it) }
+            .onSuccess { job ->
+                remember(job)
+                scope.launch { follow(c, job) }
+            }
+    }
+
+    suspend fun cancel(id: String): Result<CompanionJob> {
+        val c = client() ?: return Result.failure(IllegalStateException("Download to server isn't set up"))
+        return runCatching { c.cancel(id) }.recoverCatching { throw Exception(describe(it), it) }
+    }
+
+    suspend fun remove(id: String): Result<Unit> {
+        val c = client() ?: return Result.failure(IllegalStateException("Download to server isn't set up"))
+        return runCatching { c.remove(id) }
+            .recoverCatching { throw Exception(describe(it), it) }
+            .onSuccess { _jobs.update { it - id } }
+    }
+
     private suspend fun follow(c: CompanionClient, first: CompanionJob) {
         var job = first
         val started = System.currentTimeMillis()
@@ -155,7 +187,7 @@ object ServerDownloads {
                 if (++misses > 30) return
             }
         }
-        val detail = job.message.lineSequence().firstOrNull().orEmpty()
+        val detail = job.summary
         when {
             job.state == CompanionJob.DONE && detail.contains("as-is") ->
                 toast("“${job.title}” is in your library (as-is: no confident MusicBrainz match)")

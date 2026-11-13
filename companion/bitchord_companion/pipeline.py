@@ -49,6 +49,10 @@ class StepFailed(Exception):
     pass
 
 
+class TracksFailed(StepFailed):
+    """Some tracks didn't download. The ones that did are kept for a retry."""
+
+
 @dataclass
 class Result:
     state: str
@@ -145,9 +149,12 @@ def beets_import(cfg: Config, beets_config: Path, library_dir: Path, staging: Pa
 def run(job: jobs.Job, cfg: Config, beets_config: Path, store: jobs.JobStore, tools: Tools, cancel: threading.Event) -> Result:
     request = albums.from_stored(job.request)
     staging = cfg.work_dir / job.id
-    if staging.exists():
+    # A retry carries on from the tracks it already has; anything else starts clean.
+    resuming = any(t.get("state") in (jobs.TRACK_DONE, jobs.TRACK_SKIPPED) for t in job.tracks)
+    if staging.exists() and not resuming:
         shutil.rmtree(staging)
-    staging.mkdir(parents=True)
+    staging.mkdir(parents=True, exist_ok=True)
+    keep_staging = False
     try:
         _download(job, request, cfg, staging, store, tools, cancel)
         files = _audio_files(staging)
@@ -187,27 +194,64 @@ def run(job: jobs.Job, cfg: Config, beets_config: Path, store: jobs.JobStore, to
                 return Result(jobs.DONE, f"In the library; Navidrome rescan failed: {problem}")
         return Result(jobs.DONE, "In the library")
     except Cancelled:
+        keep_staging = bool(job.tracks)  # a retry can pick up from here
         return Result(jobs.CANCELLED, "Cancelled")
+    except TracksFailed as e:
+        keep_staging = True
+        return Result(jobs.FAILED, str(e)[:4000])
     except StepFailed as e:
         return Result(jobs.FAILED, str(e)[-4000:])
     finally:
-        shutil.rmtree(staging, ignore_errors=True)
+        if not keep_staging:
+            shutil.rmtree(staging, ignore_errors=True)
+
+
+def _track_file(staging: Path, number: int) -> Path | None:
+    for f in staging.glob(f"{number:02d}.*"):
+        if f.suffix.lower() in AUDIO_EXTENSIONS:
+            return f
+    return None
 
 
 def _download(job, request, cfg, staging, store, tools, cancel) -> None:
     if request.tracks:
-        total = len(request.tracks)
+        tracks = job.tracks
+        if not tracks:  # a job from before per-track state
+            tracks = [
+                {"number": n, "videoId": t.video_id, "title": t.title, "artist": t.artist,
+                 "state": jobs.TRACK_WAITING, "error": ""}
+                for n, t in enumerate(request.tracks, 1)
+            ]
+            store.update(job.id, tracks=tracks)
+        total = len(tracks)
+        wanted = [t for t in tracks if t.get("state") != jobs.TRACK_SKIPPED]
+        done = 0
         failed = []
-        for number, track in enumerate(request.tracks, 1):
-            store.update(job.id, state=jobs.DOWNLOADING, progress=number - 1, total=total,
+        for t in wanted:
+            number = t["number"]
+            if t.get("state") == jobs.TRACK_DONE and _track_file(staging, number):
+                done += 1
+                continue
+            store.update_track(job.id, number, jobs.TRACK_DOWNLOADING)
+            store.update(job.id, state=jobs.DOWNLOADING, progress=done, total=total,
                          message=f"Downloading {number} of {total}")
-            code, out = tools.runner.run(ytdlp_track(cfg, track.video_id, number, staging), lambda _: None, cancel)
-            if code != 0:
-                failed.append((number, track.title or track.video_id, _last_error(out)))
+            code, out = tools.runner.run(ytdlp_track(cfg, t["videoId"], number, staging), lambda _: None, cancel)
+            if code == 0 and _track_file(staging, number):
+                store.update_track(job.id, number, jobs.TRACK_DONE)
+                done += 1
+            else:
+                error = _last_error(out)
+                store.update_track(job.id, number, jobs.TRACK_FAILED, error)
+                failed.append((number, t.get("title") or t["videoId"], error))
+        store.update(job.id, progress=done, total=total)
         if failed:
-            lines = "\n".join(f"{n}. {t}: {err}" for n, t, err in failed)
-            raise StepFailed(f"{len(failed)} of {total} tracks failed to download:\n{lines}")
-        store.update(job.id, progress=total)
+            first = f"{failed[0][0]}. {failed[0][1]}" if len(failed) == 1 else f"{len(failed)} tracks"
+            lines = "\n".join(f"{n}. {title}: {err}" for n, title, err in failed)
+            them = "it" if len(failed) == 1 else "them"
+            raise TracksFailed(
+                f"{first} didn't download ({len(failed)} of {total} failed). "
+                f"Retry {them}, or import the album without {them}.\n{lines}"
+            )
         return
 
     store.update(job.id, state=jobs.DOWNLOADING, message="Downloading")

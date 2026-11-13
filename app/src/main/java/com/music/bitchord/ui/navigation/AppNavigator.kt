@@ -21,6 +21,8 @@ sealed interface AppRoute {
     data object Sources : AppRoute
     /** BitChord ND: Settings → Download to server. */
     data object ServerDownloads : AppRoute
+    /** BitChord ND: one download to the server, track by track. */
+    data class ServerDownloadJob(val jobId: String, val title: String) : AppRoute
     data object ListenTogether : AppRoute
     data object WearOs : AppRoute
     data object Equalizer : AppRoute

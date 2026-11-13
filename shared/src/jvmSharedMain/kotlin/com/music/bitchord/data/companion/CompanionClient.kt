@@ -72,9 +72,18 @@ data class CompanionJob(
     val total: Int = 0,
     val message: String = "",
     val finished: Boolean = false,
+    /** Tracks that didn't download; a retry fetches only these. */
+    val failedTracks: Int = 0,
+    /** Failed or cancelled: can run again, keeping the tracks it already has. */
+    val retryable: Boolean = false,
+    /** Only in a single job's details (`job(id)`), not in the list. */
+    val tracks: List<CompanionTrack> = emptyList(),
 ) {
     val succeeded: Boolean get() = state == DONE || state == SKIPPED
     val failed: Boolean get() = state == FAILED
+
+    /** The first line of [message]: the rest is detail (per-track errors, beets output). */
+    val summary: String get() = message.lineSequence().firstOrNull().orEmpty()
 
     companion object {
         const val DONE = "done"
@@ -83,6 +92,19 @@ data class CompanionJob(
         const val CANCELLED = "cancelled"
     }
 }
+
+@Serializable
+data class CompanionTrack(
+    val number: Int,
+    val title: String? = null,
+    val artist: String? = null,
+    /** waiting, downloading, done, failed or skipped (left out on request). */
+    val state: String = "waiting",
+    val error: String? = null,
+)
+
+@Serializable
+private data class RetryBody(val skipFailed: Boolean)
 
 @Serializable
 data class AlbumDownload(
@@ -120,6 +142,19 @@ class CompanionClient(
     suspend fun jobs(): List<CompanionJob> = decode<JobList>(call("GET", "api/jobs")).jobs
 
     suspend fun cancel(id: String): CompanionJob = decode(call("POST", "api/jobs/$id/cancel", "{}"))
+
+    /**
+     * Runs a failed or cancelled download again. Tracks already downloaded are
+     * kept; with [skipFailed] the failed ones are left out and the album is
+     * imported without them, otherwise they're tried again.
+     */
+    suspend fun retry(id: String, skipFailed: Boolean): CompanionJob =
+        decode(call("POST", "api/jobs/$id/retry", json.encodeToString(RetryBody(skipFailed))))
+
+    /** Forgets a finished download, and any tracks kept for a retry. */
+    suspend fun remove(id: String) {
+        call("DELETE", "api/jobs/$id")
+    }
 
     private inline fun <reified T> decode(body: String): T = json.decodeFromString(body)
 
