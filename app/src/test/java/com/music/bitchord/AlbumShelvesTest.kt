@@ -100,4 +100,24 @@ class AlbumShelvesTest {
         assertNull(yt.coverArt)
         assertTrue(AlbumShelves.isShelf("nd:shelf:x"))
     }
+
+    @Test
+    fun `shelf sorts`() {
+        val a = ShelfAlbum("a", "beta", year = 1999, added = 30.0)
+        val b = ShelfAlbum("b", "Alpha", year = null, added = null)
+        val c = ShelfAlbum("c", "gamma", year = 1972, added = 10.0)
+        val d = ShelfAlbum("d", "delta", year = 2010, added = 20.0)
+        val shelf = listOf(a, b, c, d)
+        fun ids(sort: com.music.bitchord.data.shelves.ShelfSort) =
+            AlbumShelves.sorted(shelf, sort).joinToString("") { it.id }
+        assertEquals("abcd", ids(com.music.bitchord.data.shelves.ShelfSort.CUSTOM))
+        assertEquals("badc", ids(com.music.bitchord.data.shelves.ShelfSort.TITLE_ASC))
+        assertEquals("cdab", ids(com.music.bitchord.data.shelves.ShelfSort.TITLE_DESC))
+        // No year: last, both ways.
+        assertEquals("cadb", ids(com.music.bitchord.data.shelves.ShelfSort.RELEASE_OLDEST))
+        assertEquals("dacb", ids(com.music.bitchord.data.shelves.ShelfSort.RELEASE_NEWEST))
+        // No date (from before dates were kept): earliest.
+        assertEquals("bcda", ids(com.music.bitchord.data.shelves.ShelfSort.ADDED_OLDEST))
+        assertEquals("adcb", ids(com.music.bitchord.data.shelves.ShelfSort.ADDED_NEWEST))
+    }
 }

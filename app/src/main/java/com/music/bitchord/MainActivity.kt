@@ -141,6 +141,7 @@ import com.music.bitchord.ui.screens.ShelfPickerSheet
 import com.music.bitchord.ui.screens.ShelfEditSheet
 import com.music.bitchord.ui.screens.ShelfEdit
 import com.music.bitchord.ui.screens.AlbumShelfPageHost
+import com.music.bitchord.data.shelves.ShelfSort
 import com.music.bitchord.data.companion.ShelfAlbum
 import com.music.bitchord.data.subsonic.SubsonicIds
 import com.music.bitchord.data.AppUpdateChecker
@@ -1013,6 +1014,8 @@ private fun BitChordApp(
     val detailSongSorts by AppSettings.detailSongSorts.collectAsStateWithLifecycle()
     val songSort = topDetail?.browseId?.let { detailSongSorts[it] } ?: SongSort.DEFAULT
     var songSortMenuOpen by remember { mutableStateOf(false) }
+    var shelfSortMenuOpen by remember { mutableStateOf(false) }
+    val shelfSorts by AppSettings.shelfSorts.collectAsStateWithLifecycle()
     // A device folder's equivalents — its sort and whether it is a grid —
     // kept apart for Downloads and shared by every other folder, as they
     // always were. Up here because both the page and the top bar's menu read
@@ -4092,6 +4095,17 @@ private fun BitChordApp(
                             // folder offers (see `LocalSearchField`), adapted to
                             // the one thing a playlist or album card carries: a
                             // title.
+                            // BitChord ND: a shelf's page sorts its albums, from the
+                            // same button and menu as a playlist's songs.
+                            if (route is AppRoute.AlbumShelfPage) {
+                                IconButton(onClick = { shelfSortMenuOpen = true }) {
+                                    Icon(
+                                        Icons.Rounded.Sort,
+                                        contentDescription = "Sort albums",
+                                        tint = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                }
+                            }
                             if (route is AppRoute.LibraryShowAll) {
                                 Box {
                                     IconButton(onClick = { librarySortMenuOpen = true }) {
@@ -5690,6 +5704,22 @@ private fun BitChordApp(
             )
         }
 
+        val sortingShelf = (route as? AppRoute.AlbumShelfPage)?.shelfId
+        if (shelfSortMenuOpen && sortingShelf != null) {
+            BackHandler { shelfSortMenuOpen = false }
+            FrostedShelfSortMenu(
+                hazeState = hazeState,
+                selected = shelfSorts[sortingShelf] ?: ShelfSort.CUSTOM,
+                onSelect = { option ->
+                    AppSettings.setShelfSort(sortingShelf, option)
+                    // As with a playlist's date row: a flip keeps the menu up
+                    // so the arrow's turn is seen; a new order closes it.
+                    if (option.flipOf() == null) shelfSortMenuOpen = false
+                },
+                onDismiss = { shelfSortMenuOpen = false },
+            )
+        }
+
         if (songSortMenuOpen) {
             BackHandler { songSortMenuOpen = false }
             FrostedSortMenu(
@@ -6319,6 +6349,69 @@ private fun FrostedSortMenu(
                     onClick = { onSelect(option) },
                 )
             }
+    }
+}
+
+/** The other direction of a two-way shelf sort (release date, date added); null for the rest. */
+private fun ShelfSort.flipOf(): ShelfSort? = when (this) {
+    ShelfSort.RELEASE_NEWEST -> ShelfSort.RELEASE_OLDEST
+    ShelfSort.RELEASE_OLDEST -> ShelfSort.RELEASE_NEWEST
+    ShelfSort.ADDED_NEWEST -> ShelfSort.ADDED_OLDEST
+    ShelfSort.ADDED_OLDEST -> ShelfSort.ADDED_NEWEST
+    else -> null
+}
+
+/**
+ * BitChord ND: a shelf's sort menu, laid out like a playlist's. Date added
+ * and Release date are one row each with an arrow for the direction — up for
+ * newest first, where a fresh pick lands — and tapping the active one flips it.
+ */
+@Composable
+private fun FrostedShelfSortMenu(
+    hazeState: HazeState,
+    selected: ShelfSort,
+    onSelect: (ShelfSort) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    FrostedMenuPanel(hazeState = hazeState, onDismiss = onDismiss) {
+        listOf(
+            ShelfSort.ADDED_NEWEST to ShelfSort.ADDED_OLDEST,
+            ShelfSort.RELEASE_NEWEST to ShelfSort.RELEASE_OLDEST,
+        ).forEach { (newest, oldest) ->
+            val active = selected == newest || selected == oldest
+            val rotation by animateFloatAsState(
+                targetValue = if (selected == oldest) 180f else 0f,
+                animationSpec = tween(durationMillis = 200),
+                label = "shelfSortArrow",
+            )
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .clickable(role = Role.Button) {
+                        onSelect(if (selected == newest) oldest else newest)
+                    }
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(newest.label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                if (active) {
+                    Icon(
+                        Icons.Rounded.ArrowUpward,
+                        contentDescription = if (selected == oldest) "Oldest first" else "Newest first",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.rotate(rotation),
+                    )
+                }
+            }
+        }
+        listOf(ShelfSort.CUSTOM, ShelfSort.TITLE_ASC, ShelfSort.TITLE_DESC).forEach { option ->
+            FrostedMenuRow(
+                label = option.label,
+                checked = option == selected,
+                onClick = { onSelect(option) },
+            )
+        }
     }
 }
 

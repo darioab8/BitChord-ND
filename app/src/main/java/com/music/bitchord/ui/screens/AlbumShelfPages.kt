@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.widget.Toast
+import com.music.bitchord.data.settings.AppSettings
+import com.music.bitchord.data.shelves.ShelfSort
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -127,6 +129,7 @@ fun AlbumShelfPageHost(
     onItemLongPress: (ShelfItem) -> Unit,
 ) {
     val live by AlbumShelves.shelves.collectAsStateWithLifecycle()
+    val shelfSorts by AppSettings.shelfSorts.collectAsStateWithLifecycle()
     var shelf by remember(shelfId) { mutableStateOf<AlbumShelf?>(null) }
     var error by remember(shelfId) { mutableStateOf<String?>(null) }
     var attempt by remember { mutableStateOf(0) }
@@ -155,6 +158,7 @@ fun AlbumShelfPageHost(
         onItemClick = onItemClick,
         onItemLongPress = onItemLongPress,
         contentPadding = contentPadding,
+        sort = shelfSorts[shelfId] ?: ShelfSort.CUSTOM,
     )
 }
 

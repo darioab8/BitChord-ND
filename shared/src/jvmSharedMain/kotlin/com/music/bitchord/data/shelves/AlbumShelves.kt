@@ -180,7 +180,8 @@ object AlbumShelves {
         val shelf = shelf(shelfId).getOrThrow()
         val gate = Semaphore(4)
         return coroutineScope {
-            shelf.albums.map { album ->
+            // In the order the page shows them.
+            sorted(shelf.albums, sortOf(shelfId)).map { album ->
                 async {
                     gate.withPermit {
                         Catalog.current.allSongs(album.id).getOrNull().orEmpty()
@@ -189,6 +190,37 @@ object AlbumShelves {
                 }
             }.awaitAll().flatten()
         }
+    }
+
+    // ---- sorting -------------------------------------------------------------
+
+    /** How a shelf's page lists its albums, kept per shelf on the phone. Set by the app. */
+    @Volatile
+    var sortOf: (shelfId: String) -> ShelfSort = { ShelfSort.CUSTOM }
+
+    /**
+     * [albums] in [sort]'s order. Ties, and albums without a year or a date
+     * added, keep the shelf's own order; albums without a year go last either
+     * way. Entries from before dates were kept count as added in shelf order,
+     * before any that have a date.
+     */
+    fun sorted(albums: List<ShelfAlbum>, sort: ShelfSort): List<ShelfAlbum> {
+        val indexed = albums.withIndex()
+        val byTitle = compareBy<IndexedValue<ShelfAlbum>, String>(String.CASE_INSENSITIVE_ORDER) { it.value.title }
+        val byAdded = compareBy<IndexedValue<ShelfAlbum>> { it.value.added ?: Double.NEGATIVE_INFINITY }
+            .thenBy { it.index }
+        val order: Comparator<IndexedValue<ShelfAlbum>> = when (sort) {
+            ShelfSort.CUSTOM -> return albums
+            ShelfSort.TITLE_ASC -> byTitle.thenBy { it.index }
+            ShelfSort.TITLE_DESC -> byTitle.reversed().thenBy { it.index }
+            ShelfSort.RELEASE_OLDEST -> compareBy<IndexedValue<ShelfAlbum>> { it.value.year == null }
+                .thenBy { it.value.year }.thenBy { it.index }
+            ShelfSort.RELEASE_NEWEST -> compareBy<IndexedValue<ShelfAlbum>> { it.value.year == null }
+                .thenByDescending { it.value.year }.thenBy { it.index }
+            ShelfSort.ADDED_OLDEST -> byAdded
+            ShelfSort.ADDED_NEWEST -> byAdded.reversed()
+        }
+        return indexed.sortedWith(order).map { it.value }
     }
 
     // ---- writing -------------------------------------------------------------
@@ -245,4 +277,16 @@ object AlbumShelves {
         if (result.isSuccess) refresh()
         return result
     }
+}
+
+/** BitChord ND: the orders a shelf's page can list its albums in. */
+enum class ShelfSort(val label: String) {
+    /** The shelf's own order, as arranged in Edit. */
+    CUSTOM("Shelf order"),
+    TITLE_ASC("Title A–Z"),
+    TITLE_DESC("Title Z–A"),
+    RELEASE_NEWEST("Release date"),
+    RELEASE_OLDEST("Release date"),
+    ADDED_NEWEST("Date added"),
+    ADDED_OLDEST("Date added"),
 }

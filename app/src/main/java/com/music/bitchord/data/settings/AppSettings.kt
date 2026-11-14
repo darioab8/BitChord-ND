@@ -692,6 +692,9 @@ object AppSettings {
      */
     val detailSongSorts = MutableStateFlow<Map<String, SongSort>>(emptyMap())
 
+    /** BitChord ND: each shelf's sort on its page, by shelf id. Absent means its own order. */
+    val shelfSorts = MutableStateFlow<Map<String, com.music.bitchord.data.shelves.ShelfSort>>(emptyMap())
+
     /** Empty means every MediaStore folder; otherwise this is a persisted SAF tree URI. */
     val localMusicFolderUri = MutableStateFlow("")
 
@@ -1107,6 +1110,10 @@ object AppSettings {
             ?.let { saved -> LibrarySort.entries.firstOrNull { it.name == saved } }
             ?: LibrarySort.DEFAULT
         detailSongSorts.value = readDetailSongSorts()
+        shelfSorts.value = readShelfSorts()
+        com.music.bitchord.data.shelves.AlbumShelves.sortOf = { id ->
+            shelfSorts.value[id] ?: com.music.bitchord.data.shelves.ShelfSort.CUSTOM
+        }
         localMusicFolderUri.value = prefs.getString(KEY_LOCAL_MUSIC_FOLDER_URI, "").orEmpty()
         webdavUrl.value = prefs.getString(KEY_WEBDAV_URL, "").orEmpty()
         webdavUsername.value = prefs.getString(KEY_WEBDAV_USERNAME, "").orEmpty()
@@ -1974,6 +1981,26 @@ object AppSettings {
         prefs.edit().putString(KEY_LIBRARY_SORT, value.name).apply()
     }
 
+    fun setShelfSort(shelfId: String, value: com.music.bitchord.data.shelves.ShelfSort) {
+        shelfSorts.value = shelfSorts.value + (shelfId to value)
+        prefs.edit().putString(
+            KEY_SHELF_SORTS,
+            shelfSorts.value.entries.joinToString(",") { (id, sort) -> "$id=${sort.name}" },
+        ).apply()
+    }
+
+    private fun readShelfSorts(): Map<String, com.music.bitchord.data.shelves.ShelfSort> =
+        prefs.getString(KEY_SHELF_SORTS, null)
+            ?.split(",")
+            ?.mapNotNull { entry ->
+                val id = entry.substringBefore('=', "")
+                val sort = com.music.bitchord.data.shelves.ShelfSort.entries
+                    .firstOrNull { it.name == entry.substringAfter('=', "") }
+                if (id.isBlank() || sort == null) null else id to sort
+            }
+            ?.toMap()
+            ?: emptyMap()
+
     fun setDetailSongSort(browseId: String, value: SongSort) {
         detailSongSorts.value = detailSongSorts.value + (browseId to value)
         prefs.edit().putString(
@@ -2336,6 +2363,7 @@ object AppSettings {
     private const val KEY_DOWNLOADED_MUSIC_SORT = "downloaded_music_sort"
     private const val KEY_LIBRARY_SORT = "library_sort"
     private const val KEY_DETAIL_SONG_SORTS = "detail_song_sorts"
+    private const val KEY_SHELF_SORTS = "nd_shelf_sorts"
     private const val KEY_LOCAL_MUSIC_VIEW_TYPE = "local_music_view_type"
     private const val KEY_DOWNLOADED_MUSIC_VIEW_TYPE = "downloaded_music_view_type"
     private const val KEY_LOCAL_MUSIC_FOLDER_URI = "local_music_folder_uri"

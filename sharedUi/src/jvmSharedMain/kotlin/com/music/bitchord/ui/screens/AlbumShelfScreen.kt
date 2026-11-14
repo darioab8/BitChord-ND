@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.music.bitchord.data.companion.AlbumShelf
 import com.music.bitchord.data.model.ShelfItem
 import com.music.bitchord.data.shelves.AlbumShelves
+import com.music.bitchord.data.shelves.ShelfSort
 import com.music.bitchord.ui.components.LIBRARY_GRID_SPACING
 import com.music.bitchord.ui.components.MessageState
 import com.music.bitchord.ui.components.PAGE_GUTTER
@@ -71,6 +72,7 @@ fun AlbumShelfScreen(
     onItemLongPress: (ShelfItem) -> Unit,
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
+    sort: ShelfSort = ShelfSort.CUSTOM,
 ) {
     if (shelf == null) {
         Column(modifier.fillMaxSize().padding(contentPadding)) {
@@ -83,7 +85,7 @@ fun AlbumShelfScreen(
         }
         return
     }
-    val cards = remember(shelf) { shelf.albums.map(AlbumShelves::albumCard) }
+    val cards = remember(shelf, sort) { AlbumShelves.sorted(shelf.albums, sort).map(AlbumShelves::albumCard) }
     BoxWithConstraints(modifier.fillMaxSize()) {
         val grid = libraryGrid(maxWidth - PAGE_GUTTER * 2)
         LazyVerticalGrid(

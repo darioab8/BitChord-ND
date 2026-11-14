@@ -163,6 +163,8 @@ class ShelfStore:
         description = _text(body.get("description"), "Description", MAX_DESCRIPTION)
         albums = _unique([parse_album(a) for a in _list(body.get("albums"))])
         now = time.time()
+        for album in albums:
+            album["added"] = now
         shelf_id = uuid.uuid4().hex[:12]
         with self._lock:
             count = self._db.execute("select count(*) from shelves").fetchone()[0]
@@ -198,7 +200,7 @@ class ShelfStore:
         return self._save(shelf_id, name, description, albums)
 
     def add_album(self, shelf_id: str, album: dict) -> Shelf | None:
-        """At the end, unless it's already there (then nothing changes but its details)."""
+        """At the end, stamped with when, unless it's already there (then only its details change)."""
         shelf = self.get(shelf_id)
         if shelf is None:
             return None
@@ -206,11 +208,15 @@ class ShelfStore:
         albums = shelf.albums
         for i, a in enumerate(albums):
             if a["id"] == album["id"]:
+                # New details, but it was added when it was first added.
+                if "added" in a:
+                    album["added"] = a["added"]
                 albums[i] = album
                 break
         else:
             if len(albums) >= MAX_ALBUMS:
                 raise BadShelf(f"A shelf holds at most {MAX_ALBUMS} albums")
+            album["added"] = time.time()
             albums.append(album)
         return self._save(shelf_id, shelf.name, shelf.description, albums)
 

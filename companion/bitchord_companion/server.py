@@ -40,7 +40,7 @@ from .config import Config
 from .worker import Worker
 
 log = logging.getLogger("companion")
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 MAX_BODY = 512 * 1024
 JOB_PATH = re.compile(r"^/api/jobs/([0-9a-f]{12})(/cancel|/retry)?$")
 SHELF_PATH = re.compile(r"^/api/shelves/([0-9a-f]{12})(/albums|/albums/remove|/cover)?$")

@@ -414,6 +414,19 @@ class ShelfTests(ServerTests):
         except urllib.error.HTTPError as e:
             return e.code, e.read(), e.headers
 
+    def test_albums_remember_when_they_were_added(self):
+        _, shelf = self.call("POST", "/api/shelves", {"name": "Dated", "albums": [{"id": "nd:album:1", "title": "One"}]})
+        sid = shelf["id"]
+        first = self.call("GET", f"/api/shelves/{sid}")[1]["albums"][0]["added"]
+        self.assertIsInstance(first, float)
+        self.call("POST", f"/api/shelves/{sid}/albums", {"album": {"id": "nd:album:2", "title": "Two"}})
+        # Re-adding with new details keeps the original date; a client can't set one.
+        self.call("POST", f"/api/shelves/{sid}/albums", {"album": {"id": "nd:album:1", "title": "One!", "added": 1.0}})
+        albums = self.call("GET", f"/api/shelves/{sid}")[1]["albums"]
+        self.assertEqual([a["title"] for a in albums], ["One!", "Two"])
+        self.assertEqual(albums[0]["added"], first)
+        self.assertGreaterEqual(albums[1]["added"], first)
+
     def test_custom_cover(self):
         from bitchord_companion.shelves import cover_signature
         _, shelf = self.call("POST", "/api/shelves", {"name": "Covered"})

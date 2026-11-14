@@ -139,6 +139,8 @@ data class ShelfAlbum(
     val year: Int? = null,
     val cover: String? = null,
     val coverArt: String? = null,
+    /** When it went on the shelf (Unix seconds), set by the companion; null for older entries. */
+    val added: Double? = null,
 )
 
 /** A shelf: the owner's own list of albums. [albums] is filled only by [CompanionClient.shelf]. */
