@@ -108,6 +108,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.focus.FocusRequester
@@ -6404,14 +6405,16 @@ private fun FrostedShelfSortMenu(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(newest.label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                if (active) {
-                    Icon(
-                        Icons.Rounded.ArrowUpward,
-                        contentDescription = if (selected == oldest) "Oldest first" else "Newest first",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.rotate(rotation),
-                    )
-                }
+                // The arrow sits at the row's right edge, well clear of the
+                // label. Its room is kept even while hidden, so the panel is
+                // wide enough for it and doesn't jump when a row turns on.
+                Spacer(Modifier.width(32.dp))
+                Icon(
+                    Icons.Rounded.ArrowUpward,
+                    contentDescription = if (!active) null else if (selected == oldest) "Oldest first" else "Newest first",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.rotate(rotation).alpha(if (active) 1f else 0f),
+                )
             }
         }
         listOf(ShelfSort.CUSTOM, ShelfSort.TITLE_ASC, ShelfSort.TITLE_DESC).forEach { option ->
