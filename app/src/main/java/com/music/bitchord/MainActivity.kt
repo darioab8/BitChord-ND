@@ -1015,7 +1015,6 @@ private fun BitChordApp(
     val songSort = topDetail?.browseId?.let { detailSongSorts[it] } ?: SongSort.DEFAULT
     var songSortMenuOpen by remember { mutableStateOf(false) }
     var shelfSortMenuOpen by remember { mutableStateOf(false) }
-    val shelfSorts by AppSettings.shelfSorts.collectAsStateWithLifecycle()
     // A device folder's equivalents — its sort and whether it is a grid —
     // kept apart for Downloads and shared by every other folder, as they
     // always were. Up here because both the page and the top bar's menu read
@@ -4097,15 +4096,7 @@ private fun BitChordApp(
                             // title.
                             // BitChord ND: a shelf's page sorts its albums, from the
                             // same button and menu as a playlist's songs.
-                            if (route is AppRoute.AlbumShelfPage) {
-                                IconButton(onClick = { shelfSortMenuOpen = true }) {
-                                    Icon(
-                                        Icons.Rounded.Sort,
-                                        contentDescription = "Sort albums",
-                                        tint = MaterialTheme.colorScheme.onSurface,
-                                    )
-                                }
-                            }
+                            if (route is AppRoute.AlbumShelfPage) ShelfSortButton { shelfSortMenuOpen = true }
                             if (route is AppRoute.LibraryShowAll) {
                                 Box {
                                     IconButton(onClick = { librarySortMenuOpen = true }) {
@@ -5704,20 +5695,8 @@ private fun BitChordApp(
             )
         }
 
-        val sortingShelf = (route as? AppRoute.AlbumShelfPage)?.shelfId
-        if (shelfSortMenuOpen && sortingShelf != null) {
-            BackHandler { shelfSortMenuOpen = false }
-            FrostedShelfSortMenu(
-                hazeState = hazeState,
-                selected = shelfSorts[sortingShelf] ?: ShelfSort.CUSTOM,
-                onSelect = { option ->
-                    AppSettings.setShelfSort(sortingShelf, option)
-                    // As with a playlist's date row: a flip keeps the menu up
-                    // so the arrow's turn is seen; a new order closes it.
-                    if (option.flipOf() == null) shelfSortMenuOpen = false
-                },
-                onDismiss = { shelfSortMenuOpen = false },
-            )
+        if (shelfSortMenuOpen) {
+            ShelfSortMenuHost((route as? AppRoute.AlbumShelfPage)?.shelfId, hazeState) { shelfSortMenuOpen = false }
         }
 
         if (songSortMenuOpen) {
@@ -6350,6 +6329,36 @@ private fun FrostedSortMenu(
                 )
             }
     }
+}
+
+/** BitChord ND: the top bar's sort button on a shelf's page. Its own function: [BitChordApp] is at the JVM's size limit. */
+@Composable
+private fun ShelfSortButton(onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(Icons.Rounded.Sort, contentDescription = "Sort albums", tint = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
+/** BitChord ND: the sort menu for [shelfId]'s page, while it is open. */
+@Composable
+private fun ShelfSortMenuHost(shelfId: String?, hazeState: HazeState, onClose: () -> Unit) {
+    if (shelfId == null) {
+        LaunchedEffect(Unit) { onClose() }
+        return
+    }
+    val shelfSorts by AppSettings.shelfSorts.collectAsStateWithLifecycle()
+    BackHandler(onBack = onClose)
+    FrostedShelfSortMenu(
+        hazeState = hazeState,
+        selected = shelfSorts[shelfId] ?: ShelfSort.CUSTOM,
+        onSelect = { option ->
+            AppSettings.setShelfSort(shelfId, option)
+            // As with a playlist's date row: a flip keeps the menu up so the
+            // arrow's turn is seen; a new order closes it.
+            if (option.flipOf() == null) onClose()
+        },
+        onDismiss = onClose,
+    )
 }
 
 /** The other direction of a two-way shelf sort (release date, date added); null for the rest. */
