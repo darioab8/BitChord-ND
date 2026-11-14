@@ -149,6 +149,8 @@ data class AlbumShelf(
     val description: String = "",
     val count: Int = 0,
     val updated: Double = 0.0,
+    /** The version of the shelf's own cover; null draws it from its albums. */
+    val cover: String? = null,
     /** The first few albums, for the card's collage. */
     val preview: List<ShelfAlbum> = emptyList(),
     /** Every album's id, in the list only, so "Add to shelf" can tick the ones it's on. */
@@ -238,14 +240,39 @@ class CompanionClient(
     suspend fun removeFromShelf(id: String, albumId: String): AlbumShelf =
         decode(call("POST", "api/shelves/$id/albums/remove", json.encodeToString(IdBody(albumId))))
 
+    /** Replaces the shelf's cover with [image] (JPEG, PNG or WebP bytes). */
+    suspend fun setShelfCover(id: String, image: ByteArray, mimeType: String = "image/jpeg"): AlbumShelf =
+        decode(callBody("PUT", "api/shelves/$id/cover", image.toRequestBody(mimeType.toMediaType())))
+
+    /** Back to a cover drawn from the shelf's albums. */
+    suspend fun clearShelfCover(id: String): AlbumShelf = decode(call("DELETE", "api/shelves/$id/cover"))
+
+    /**
+     * Where the shelf's own cover loads from, or null without one. The link
+     * carries a signature made with the token rather than the token itself,
+     * so it works as a plain image URL.
+     */
+    fun shelfCoverUrl(shelf: AlbumShelf): String? {
+        val version = shelf.cover?.takeIf { it.isNotBlank() } ?: return null
+        return base.newBuilder()
+            .addPathSegments("covers/${shelf.id}")
+            .addQueryParameter("v", version)
+            .addQueryParameter("sig", coverSignature(config.token, shelf.id, version))
+            .build()
+            .toString()
+    }
+
     private inline fun <reified T> decode(body: String): T = json.decodeFromString(body)
 
-    private suspend fun call(method: String, path: String, body: String? = null): String = withContext(Dispatchers.IO) {
+    private suspend fun call(method: String, path: String, body: String? = null): String =
+        callBody(method, path, body?.toRequestBody(JSON))
+
+    private suspend fun callBody(method: String, path: String, body: okhttp3.RequestBody?): String = withContext(Dispatchers.IO) {
         val url = base.newBuilder().addPathSegments(path).build()
         val request = Request.Builder()
             .url(url)
             .header("Authorization", "Bearer ${config.token}")
-            .method(method, body?.toRequestBody(JSON))
+            .method(method, body)
             .build()
         http.newCall(request).execute().use { response ->
             val text = response.body?.string().orEmpty()
@@ -262,6 +289,15 @@ class CompanionClient(
 
     companion object {
         private val JSON = "application/json".toMediaType()
+
+        /** HMAC-SHA256(token, "<id>:<version>"), first 32 hex digits, as the companion checks it. */
+        fun coverSignature(token: String, shelfId: String, version: String): String {
+            val mac = javax.crypto.Mac.getInstance("HmacSHA256")
+            mac.init(javax.crypto.spec.SecretKeySpec(token.toByteArray(), "HmacSHA256"))
+            return mac.doFinal("$shelfId:$version".toByteArray())
+                .joinToString("") { "%02x".format(it) }
+                .take(32)
+        }
         private val json = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefaults = true }
 
         /**

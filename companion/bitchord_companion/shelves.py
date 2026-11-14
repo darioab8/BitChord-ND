@@ -9,9 +9,15 @@ asking anyone: its browse id (a server album, `nd:album:<id>`, or a YouTube
 Music one, `MPRE…`), title, artist, year, and its artwork. Server artwork is
 kept as the cover-art id only: a Subsonic cover URL carries the login's token,
 which has no business sitting in this database. The app builds the URL.
+
+A shelf can have its own cover, uploaded from the app. The image is kept as a
+file next to the database (`shelf-covers/<id>`) and the row only records its
+version, which changes with every upload so caches never show an old one.
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import sqlite3
 import threading
@@ -26,6 +32,27 @@ MAX_DESCRIPTION = 2000
 MAX_ALBUMS = 5000
 MAX_SHELVES = 500
 PREVIEW_COVERS = 4
+MAX_COVER = 5 * 1024 * 1024
+
+# What an uploaded cover may be, by its first bytes.
+_IMAGE_TYPES = (
+    (b"\xff\xd8\xff", "image/jpeg"),
+    (b"\x89PNG\r\n\x1a\n", "image/png"),
+)
+
+
+def image_type(data: bytes) -> str | None:
+    for magic, mime in _IMAGE_TYPES:
+        if data.startswith(magic):
+            return mime
+    if len(data) > 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+
+def cover_signature(token: str, shelf_id: str, version: str) -> str:
+    """What a cover link carries instead of the token: images load without headers."""
+    return hmac.new(token.encode(), f"{shelf_id}:{version}".encode(), hashlib.sha256).hexdigest()[:32]
 
 
 class BadShelf(ValueError):
@@ -73,6 +100,7 @@ class Shelf:
         self.description = row["description"]
         self.created = row["created"]
         self.updated = row["updated"]
+        self.cover = row["cover"] if "cover" in row.keys() else None
         self.albums: list[dict] = json.loads(row["albums"] or "[]")
 
     def summary(self) -> dict:
@@ -83,6 +111,8 @@ class Shelf:
             "count": len(self.albums),
             "created": self.created,
             "updated": self.updated,
+            # The version of the shelf's own cover, or null to draw it from its albums.
+            "cover": self.cover,
             # What the card's collage is drawn from.
             "preview": self.albums[:PREVIEW_COVERS],
             # So "Add to shelf" can tick the shelves an album is already on.
@@ -99,6 +129,7 @@ class Shelf:
 class ShelfStore:
     def __init__(self, path: Path):
         path.parent.mkdir(parents=True, exist_ok=True)
+        self.covers_dir = path.parent / "shelf-covers"
         self._db = sqlite3.connect(str(path), check_same_thread=False)
         self._db.row_factory = sqlite3.Row
         self._lock = threading.Lock()
@@ -108,6 +139,9 @@ class ShelfStore:
                     id text primary key, name text, description text,
                     created real, updated real, albums text default '[]')"""
             )
+            columns = {r[1] for r in self._db.execute("pragma table_info(shelves)")}
+            if "cover" not in columns:
+                self._db.execute("alter table shelves add column cover text")
             self._db.commit()
 
     def close(self) -> None:
@@ -135,7 +169,7 @@ class ShelfStore:
             if count >= MAX_SHELVES:
                 raise BadShelf(f"You already have {MAX_SHELVES} shelves")
             self._db.execute(
-                "insert into shelves values (?, ?, ?, ?, ?, ?)",
+                "insert into shelves (id, name, description, created, updated, albums) values (?, ?, ?, ?, ?, ?)",
                 (shelf_id, name, description, now, now, json.dumps(albums)),
             )
             self._db.commit()
@@ -191,7 +225,53 @@ class ShelfStore:
         with self._lock:
             cur = self._db.execute("delete from shelves where id = ?", (shelf_id,))
             self._db.commit()
+        self._cover_path(shelf_id).unlink(missing_ok=True)
         return cur.rowcount > 0
+
+    # ---- its own cover ---------------------------------------------------------
+
+    def _cover_path(self, shelf_id: str) -> Path:
+        return self.covers_dir / shelf_id
+
+    def set_cover(self, shelf_id: str, data: bytes) -> Shelf | None:
+        """Replaces the shelf's cover with an uploaded JPEG, PNG or WebP. Raises BadShelf."""
+        if self.get(shelf_id) is None:
+            return None
+        if not data:
+            raise BadShelf("No image was sent")
+        if len(data) > MAX_COVER:
+            raise BadShelf("That image is too large")
+        if image_type(data) is None:
+            raise BadShelf("A cover must be a JPEG, PNG or WebP image")
+        self.covers_dir.mkdir(parents=True, exist_ok=True)
+        tmp = self.covers_dir / f".{shelf_id}.tmp"
+        tmp.write_bytes(data)
+        tmp.replace(self._cover_path(shelf_id))
+        version = hashlib.sha256(data).hexdigest()[:12]
+        with self._lock:
+            self._db.execute(
+                "update shelves set cover = ?, updated = ? where id = ?", (version, time.time(), shelf_id)
+            )
+            self._db.commit()
+        return self.get(shelf_id)
+
+    def clear_cover(self, shelf_id: str) -> Shelf | None:
+        if self.get(shelf_id) is None:
+            return None
+        self._cover_path(shelf_id).unlink(missing_ok=True)
+        with self._lock:
+            self._db.execute("update shelves set cover = null, updated = ? where id = ?", (time.time(), shelf_id))
+            self._db.commit()
+        return self.get(shelf_id)
+
+    def cover(self, shelf_id: str) -> tuple[bytes, str, str] | None:
+        """The cover's bytes, type and version, or None without one."""
+        shelf = self.get(shelf_id)
+        path = self._cover_path(shelf_id)
+        if shelf is None or not shelf.cover or not path.is_file():
+            return None
+        data = path.read_bytes()
+        return data, image_type(data) or "application/octet-stream", shelf.cover
 
     def _save(self, shelf_id: str, name: str, description: str, albums: list[dict]) -> Shelf:
         with self._lock:

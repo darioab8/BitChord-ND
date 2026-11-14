@@ -400,7 +400,51 @@ class ShelfTests(ServerTests):
         self.assertEqual(self.call("GET", "/api/shelves", token=None)[0], 401)
 
     def test_health_says_shelves(self):
-        self.assertTrue(self.call("GET", "/api/health")[1]["shelves"])
+        health = self.call("GET", "/api/health")[1]
+        self.assertTrue(health["shelves"])
+        self.assertTrue(health["shelfCovers"])
+
+    def raw(self, method, path, data=None, token=TOKEN):
+        req = urllib.request.Request(f"http://127.0.0.1:{self.port}{path}", method=method, data=data)
+        if token:
+            req.add_header("Authorization", f"Bearer {token}")
+        try:
+            with urllib.request.urlopen(req, timeout=5) as r:
+                return r.status, r.read(), r.headers
+        except urllib.error.HTTPError as e:
+            return e.code, e.read(), e.headers
+
+    def test_custom_cover(self):
+        from bitchord_companion.shelves import cover_signature
+        _, shelf = self.call("POST", "/api/shelves", {"name": "Covered"})
+        sid = shelf["id"]
+        self.assertIsNone(shelf["cover"])
+        png = b"\x89PNG\r\n\x1a\n" + b"pixels" * 50
+        self.assertEqual(self.raw("PUT", f"/api/shelves/{sid}/cover", b"not an image")[0], 400)
+        self.assertEqual(self.raw("PUT", f"/api/shelves/{sid}/cover", png, token=None)[0], 401)
+        code, body, _ = self.raw("PUT", f"/api/shelves/{sid}/cover", png)
+        self.assertEqual(code, 200)
+        version = json.loads(body)["cover"]
+        self.assertTrue(version)
+        self.assertEqual(self.call("GET", "/api/shelves")[1]["shelves"][0]["cover"], version)
+        sig = cover_signature(TOKEN, sid, version)
+        code, image, headers = self.raw("GET", f"/covers/{sid}?v={version}&sig={sig}", token=None)
+        self.assertEqual((code, image, headers["Content-Type"]), (200, png, "image/png"))
+        self.assertIn("immutable", headers["Cache-Control"])
+        # Without the right signature, or for an old version: nothing.
+        self.assertEqual(self.raw("GET", f"/covers/{sid}?v={version}&sig=0", token=None)[0], 404)
+        self.assertEqual(self.raw("GET", f"/covers/{sid}?v=old&sig={cover_signature(TOKEN, sid, 'old')}", token=None)[0], 404)
+        # A new image, a new version.
+        jpeg = b"\xff\xd8\xff" + b"j" * 100
+        _, body, _ = self.raw("PUT", f"/api/shelves/{sid}/cover", jpeg)
+        self.assertNotEqual(json.loads(body)["cover"], version)
+        code, shelf = self.call("DELETE", f"/api/shelves/{sid}/cover")
+        self.assertEqual((code, shelf["cover"]), (200, None))
+        self.assertEqual(self.raw("GET", f"/covers/{sid}?v={version}&sig={sig}", token=None)[0], 404)
+        # Deleting the shelf takes its cover file too.
+        self.raw("PUT", f"/api/shelves/{sid}/cover", png)
+        self.call("DELETE", f"/api/shelves/{sid}")
+        self.assertEqual(list((self.cfg.config_dir / "shelf-covers").iterdir()), [])
 
 
 class HostModeTests(Base):

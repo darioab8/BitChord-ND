@@ -1,6 +1,8 @@
 package com.music.bitchord
 
 import com.music.bitchord.data.companion.AlbumShelf
+import com.music.bitchord.data.companion.CompanionClient
+import com.music.bitchord.data.companion.CompanionConfig
 import com.music.bitchord.data.companion.ShelfAlbum
 import com.music.bitchord.data.model.HomeShelf
 import com.music.bitchord.data.shelves.AlbumShelves
@@ -49,6 +51,36 @@ class AlbumShelvesTest {
         assertEquals("a1b2c3d4e5f6", AlbumShelves.shelfId(card.browseId))
         assertEquals(4, card.collage.size)
         assertEquals("Shelf • 5 albums", card.subtitle)
+    }
+
+    @Test
+    fun `one album is its cover, two or three fill the grid by repeating`() {
+        val single = AlbumShelves.card(one.copy(count = 1, preview = one.preview.take(1)))
+        assertEquals("https://lh3.googleusercontent.com/1", single.thumbnailUrl)
+        assertTrue(single.collage.isEmpty())
+        assertEquals(
+            listOf("https://lh3.googleusercontent.com/1", "https://lh3.googleusercontent.com/2",
+                "https://lh3.googleusercontent.com/2", "https://lh3.googleusercontent.com/1"),
+            AlbumShelves.card(one.copy(count = 2, preview = one.preview.take(2))).collage,
+        )
+        assertEquals(listOf(1, 2, 3, 1), AlbumShelves.gridOf(listOf(1, 2, 3)))
+        assertNull(AlbumShelves.card(one.copy(count = 0, preview = emptyList())).thumbnailUrl)
+    }
+
+    @Test
+    fun `an uploaded cover wins over the albums`() {
+        val before = AlbumShelves.client
+        AlbumShelves.client = { CompanionClient(CompanionConfig("http://nas:8765", "secret")) }
+        try {
+            val card = AlbumShelves.card(one.copy(cover = "v1"))
+            assertTrue(card.collage.isEmpty())
+            val sig = CompanionClient.coverSignature("secret", one.id, "v1")
+            assertEquals("http://nas:8765/covers/${one.id}?v=v1&sig=$sig", card.thumbnailUrl)
+            // What the companion's Python computes for the same input.
+            assertEquals("8258730e8cf34d510524fe88300b1e5e", sig)
+        } finally {
+            AlbumShelves.client = before
+        }
     }
 
     @Test

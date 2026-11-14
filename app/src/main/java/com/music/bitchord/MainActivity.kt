@@ -3139,7 +3139,7 @@ private fun BitChordApp(
                             AlbumShelfPageHost(
                                 shelfId = pageRoute.shelfId,
                                 contentPadding = listPadding,
-                                onEdit = { shelf -> shelfEditing = ShelfEdit(shelf.id, shelf.name, shelf.description) },
+                                onEdit = { shelf -> shelfEditing = ShelfEdit(shelf.id, shelf.name, shelf.description, shelf = shelf) },
                                 onPlay = { shelf, shuffled ->
                                     withBrowseSongs(
                                         BrowseTarget(AlbumShelves.id(shelf.id), shelf.name, "", type = BrowseType.OTHER),

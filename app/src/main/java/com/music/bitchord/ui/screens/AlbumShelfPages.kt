@@ -1,6 +1,21 @@
 package com.music.bitchord.ui.screens
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import java.io.ByteArrayOutputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -67,7 +82,72 @@ data class ShelfEdit(
     val name: String = "",
     val description: String = "",
     val firstAlbum: ShelfAlbum? = null,
+    /** The shelf as it is, for its current cover; null for a new one. */
+    val shelf: AlbumShelf? = null,
 )
+
+/**
+ * A shelf's picture, as on its cards: its own cover, its one album's, or a
+ * 2×2 grid of its albums'.
+ */
+@Composable
+fun ShelfArtworkView(artwork: AlbumShelves.Artwork, modifier: Modifier = Modifier) {
+    Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant)) {
+        if (artwork.collage.size >= 4) {
+            Column(Modifier.fillMaxSize()) {
+                artwork.collage.take(4).chunked(2).forEach { pair ->
+                    Row(Modifier.fillMaxWidth().weight(1f)) {
+                        pair.forEach { url ->
+                            AsyncImage(
+                                model = url,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.weight(1f).fillMaxHeight(),
+                            )
+                        }
+                    }
+                }
+            }
+        } else if (artwork.single != null) {
+            AsyncImage(
+                model = artwork.single,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+    }
+}
+
+/**
+ * A picked image made ready to upload: the centre square, at most
+ * [COVER_EDGE] pixels a side, as a JPEG. Null when it can't be read.
+ */
+private suspend fun coverFromUri(context: Context, uri: Uri): Pair<ByteArray, Bitmap>? = withContext(Dispatchers.IO) {
+    runCatching {
+        val resolver = context.contentResolver
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+        val shortest = minOf(bounds.outWidth, bounds.outHeight)
+        if (shortest <= 0) return@runCatching null
+        var sample = 1
+        while (shortest / (sample * 2) >= COVER_EDGE) sample *= 2
+        val decoded = resolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample })
+        } ?: return@runCatching null
+        val side = minOf(decoded.width, decoded.height)
+        val square = Bitmap.createBitmap(decoded, (decoded.width - side) / 2, (decoded.height - side) / 2, side, side)
+        val edge = minOf(side, COVER_EDGE)
+        val scaled = if (edge == side) square else Bitmap.createScaledBitmap(square, edge, edge, true)
+        val bytes = ByteArrayOutputStream().use { out ->
+            scaled.compress(Bitmap.CompressFormat.JPEG, 90, out)
+            out.toByteArray()
+        }
+        bytes to scaled
+    }.getOrNull()
+}
+
+private const val COVER_EDGE = 1200
 
 /** A shelf's page: reads it, and reads it again whenever any shelf changes. */
 @Composable
@@ -125,6 +205,23 @@ fun ShelfEditSheet(
     var description by remember { mutableStateOf(edit.description) }
     var busy by remember { mutableStateOf(false) }
     var confirmingDelete by remember { mutableStateOf(false) }
+    // A cover picked here and not yet uploaded, or the wish to drop the current one.
+    var pickedCover by remember { mutableStateOf<Pair<ByteArray, Bitmap>?>(null) }
+    var dropCover by remember { mutableStateOf(false) }
+    val pickCover = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val cover = coverFromUri(context, uri)
+                if (cover == null) {
+                    Toast.makeText(context, "Couldn't read that image", Toast.LENGTH_SHORT).show()
+                } else {
+                    pickedCover = cover
+                    dropCover = false
+                }
+            }
+        }
+    }
+    val hasOwnCover = pickedCover != null || (edit.shelf?.cover != null && !dropCover)
     val fail: (Throwable) -> Unit = {
         busy = false
         Toast.makeText(context, it.message ?: "That didn't work", Toast.LENGTH_SHORT).show()
@@ -148,6 +245,42 @@ fun ShelfEditSheet(
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onBackground,
             )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val shape = RoundedCornerShape(10.dp)
+                val preview = pickedCover?.second
+                if (preview != null) {
+                    Image(
+                        bitmap = preview.asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(84.dp).clip(shape),
+                    )
+                } else {
+                    val shelf = edit.shelf
+                    val artwork = when {
+                        shelf == null -> AlbumShelves.Artwork(edit.firstAlbum?.let { AlbumShelves.coverOf(it, 300) })
+                        dropCover -> AlbumShelves.artwork(shelf.copy(cover = null), 300)
+                        else -> AlbumShelves.artwork(shelf, 300)
+                    }
+                    ShelfArtworkView(artwork, Modifier.size(84.dp).clip(shape))
+                }
+                Spacer(Modifier.width(14.dp))
+                Column {
+                    TextButton(
+                        onClick = { pickCover.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                        enabled = !busy,
+                    ) { Text("Choose cover") }
+                    if (hasOwnCover) {
+                        TextButton(
+                            onClick = {
+                                pickedCover = null
+                                dropCover = edit.shelf?.cover != null
+                            },
+                            enabled = !busy,
+                        ) { Text("Use the albums' covers") }
+                    }
+                }
+            }
             PillTextField(value = name, onValueChange = { name = it.take(100) }, placeholder = "Name")
             Box(
                 Modifier
@@ -177,20 +310,33 @@ fun ShelfEditSheet(
                     busy = true
                     scope.launch {
                         val id = edit.id
-                        if (id == null) {
+                        val saved = if (id == null) {
                             AlbumShelves.create(name, description, edit.firstAlbum)
-                                .onSuccess { shelf ->
-                                    if (edit.firstAlbum != null) {
-                                        Toast.makeText(context, "Added to ${shelf.name}", Toast.LENGTH_SHORT).show()
-                                    }
-                                    onDismiss()
-                                }
-                                .onFailure(fail)
                         } else {
                             AlbumShelves.edit(id, name = name, description = description)
-                                .onSuccess { onDismiss() }
-                                .onFailure(fail)
                         }
+                        val shelf = saved.getOrElse {
+                            fail(it)
+                            return@launch
+                        }
+                        // The cover after the rest, so a new shelf has an id to put it on.
+                        val picked = pickedCover
+                        val coverResult = when {
+                            picked != null -> AlbumShelves.setCover(shelf.id, picked.first)
+                            dropCover -> AlbumShelves.clearCover(shelf.id)
+                            else -> null
+                        }
+                        if (coverResult?.isFailure == true) {
+                            busy = false
+                            val why = coverResult.exceptionOrNull()?.message ?: "That didn't work"
+                            Toast.makeText(context, "Saved, but not the cover: $why", Toast.LENGTH_LONG).show()
+                            onDismiss()
+                            return@launch
+                        }
+                        if (id == null && edit.firstAlbum != null) {
+                            Toast.makeText(context, "Added to ${shelf.name}", Toast.LENGTH_SHORT).show()
+                        }
+                        onDismiss()
                     }
                 },
                 enabled = name.isNotBlank() && !busy,
@@ -305,13 +451,9 @@ fun ShelfPickerSheet(
                             .padding(horizontal = 22.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        AsyncImage(
-                            model = shelf.preview.firstOrNull()?.let { AlbumShelves.coverOf(it, 120) },
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(RoundedCornerShape(7.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                        ShelfArtworkView(
+                            artwork = AlbumShelves.artwork(shelf, 120),
+                            modifier = Modifier.size(44.dp).clip(RoundedCornerShape(7.dp)),
                         )
                         Spacer(Modifier.width(16.dp))
                         Column(Modifier.weight(1f)) {

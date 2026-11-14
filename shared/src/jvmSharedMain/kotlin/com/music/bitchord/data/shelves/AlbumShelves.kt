@@ -122,15 +122,41 @@ object AlbumShelves {
         place(rows, live, LIBRARY_TITLE, after = playlistsTitle, keepEmpty = true)
 
     fun card(shelf: AlbumShelf): ShelfItem {
-        val covers = shelf.preview.mapNotNull { coverOf(it, COVER_PX / 2) }
+        val art = artwork(shelf, COVER_PX)
         return ShelfItem(
             title = shelf.name,
             subtitle = if (shelf.count == 1) "Shelf • 1 album" else "Shelf • ${shelf.count} albums",
-            thumbnailUrl = shelf.preview.firstOrNull()?.let { coverOf(it, COVER_PX) },
+            thumbnailUrl = art.single,
             videoId = null,
             browseId = id(shelf.id),
-            collage = covers.takeIf { it.size >= 4 }.orEmpty(),
+            collage = art.collage,
         )
+    }
+
+    /** A shelf's picture: one image ([single]), or four for a 2×2 grid ([collage], [single] its first). */
+    data class Artwork(val single: String?, val collage: List<String> = emptyList())
+
+    /**
+     * Its own cover when one was uploaded; otherwise, with one album, that
+     * album's cover; with more, a 2×2 grid of the first four (two or three
+     * albums fill the grid by repeating, the way a mixed playlist's art does).
+     */
+    fun artwork(shelf: AlbumShelf, size: Int): Artwork {
+        client()?.shelfCoverUrl(shelf)?.let { return Artwork(it) }
+        val covers = shelf.preview.mapNotNull { coverOf(it, size / 2) }
+        return when (covers.size) {
+            0 -> Artwork(null)
+            1 -> Artwork(shelf.preview.firstNotNullOfOrNull { coverOf(it, size) })
+            else -> Artwork(covers.first(), gridOf(covers))
+        }
+    }
+
+    /** Four cells from two or more covers: a b / b a, a b / c a, or the first four. */
+    fun <T> gridOf(covers: List<T>): List<T> = when (covers.size) {
+        0, 1 -> covers
+        2 -> listOf(covers[0], covers[1], covers[1], covers[0])
+        3 -> listOf(covers[0], covers[1], covers[2], covers[0])
+        else -> covers.take(4)
     }
 
     /** One album on a shelf, as a card that opens the album. */
@@ -199,6 +225,13 @@ object AlbumShelves {
         write { it.editShelf(shelfId, name?.trim(), description?.trim(), order) }
 
     suspend fun delete(shelfId: String): Result<Unit> = write { it.deleteShelf(shelfId) }
+
+    /** Uploads [image] as the shelf's own cover. */
+    suspend fun setCover(shelfId: String, image: ByteArray, mimeType: String = "image/jpeg"): Result<AlbumShelf> =
+        write { it.setShelfCover(shelfId, image, mimeType) }
+
+    /** Back to the albums' covers. */
+    suspend fun clearCover(shelfId: String): Result<AlbumShelf> = write { it.clearShelfCover(shelfId) }
 
     suspend fun add(shelfId: String, album: ShelfAlbum): Result<AlbumShelf> = write { it.addToShelf(shelfId, album) }
 

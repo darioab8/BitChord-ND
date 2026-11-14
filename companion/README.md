@@ -122,8 +122,11 @@ All `/api` calls need `Authorization: Bearer <token>`.
 | `DELETE /api/shelves/<id>` | |
 | `POST /api/shelves/<id>/albums` | `{album: {id, title, artist?, year?, cover?, coverArt?}}` |
 | `POST /api/shelves/<id>/albums/remove` | `{id}` |
+| `PUT /api/shelves/<id>/cover` | the image itself as the body (JPEG, PNG or WebP, up to 5 MB) |
+| `DELETE /api/shelves/<id>/cover` | back to the albums' covers |
+| `GET /covers/<id>?v=…&sig=…` | a shelf's cover; no token, the link is signed with it (HMAC-SHA256 of `<id>:<version>`, first 32 hex) |
 
-Shelves are the app's lists of albums. They're kept in `config/shelves.db`, so back that folder up with the rest. A server album's artwork is stored as its cover-art id, never as a URL: Subsonic cover URLs carry the login's token.
+Shelves are the app's lists of albums. They're kept in `config/shelves.db` (custom covers in `config/shelf-covers/`), so back that folder up with the rest. A server album's artwork is stored as its cover-art id, never as a URL: Subsonic cover URLs carry the login's token.
 
 ## Development
 

@@ -16,6 +16,11 @@
     DELETE /api/shelves/<id>
     POST   /api/shelves/<id>/albums         {album} add (or refresh) one album
     POST   /api/shelves/<id>/albums/remove  {id} take one off
+    PUT    /api/shelves/<id>/cover          the image itself as the body (JPEG, PNG, WebP)
+    DELETE /api/shelves/<id>/cover          back to the albums' covers
+
+    GET    /covers/<id>?v=<version>&sig=<signature>   a shelf's cover, no token
+           (the signature is HMAC-SHA256(token, "<id>:<version>"), first 32 hex)
 
 Every /api call needs `Authorization: Bearer <COMPANION_TOKEN>`.
 """
@@ -26,6 +31,7 @@ import json
 import logging
 import re
 import shutil
+import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib import resources
 
@@ -34,10 +40,11 @@ from .config import Config
 from .worker import Worker
 
 log = logging.getLogger("companion")
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 MAX_BODY = 512 * 1024
 JOB_PATH = re.compile(r"^/api/jobs/([0-9a-f]{12})(/cancel|/retry)?$")
-SHELF_PATH = re.compile(r"^/api/shelves/([0-9a-f]{12})(/albums|/albums/remove)?$")
+SHELF_PATH = re.compile(r"^/api/shelves/([0-9a-f]{12})(/albums|/albums/remove|/cover)?$")
+COVER_PATH = re.compile(r"^/covers/([0-9a-f]{12})$")
 
 
 class App:
@@ -63,6 +70,7 @@ class App:
             "defaultFolder": "" if self.cfg.host_import else self.cfg.default_folder,
             "navidromeRescan": self.cfg.navidrome_configured,
             "shelves": True,
+            "shelfCovers": True,
         }
 
     def handle(self, method: str, path: str, body: bytes | None) -> tuple[int, dict]:
@@ -147,6 +155,10 @@ class App:
                 return 405, {"error": "Method not allowed"}
         elif action == "/albums" and method == "POST":
             shelf = self.shelves.add_album(shelf_id, data().get("album"))
+        elif action == "/cover" and method == "PUT":
+            shelf = self.shelves.set_cover(shelf_id, body or b"")
+        elif action == "/cover" and method == "DELETE":
+            shelf = self.shelves.clear_cover(shelf_id)
         elif action == "/albums/remove" and method == "POST":
             album_id = data().get("id")
             if not isinstance(album_id, str) or not album_id:
@@ -157,6 +169,20 @@ class App:
         if shelf is None:
             return 404, {"error": "No such shelf"}
         return 200, shelf.detail()
+
+    def shelf_cover(self, path: str, query: dict[str, str]) -> tuple[bytes, str] | None:
+        """A signed cover link's image, or None for anything else."""
+        m = COVER_PATH.match(path)
+        if not m:
+            return None
+        found = self.shelves.cover(m.group(1))
+        if found is None:
+            return None
+        data, mime, version = found
+        expected = shelves.cover_signature(self.cfg.token, m.group(1), version)
+        if query.get("v") != version or not hmac.compare_digest(query.get("sig", ""), expected):
+            return None
+        return data, mime
 
     def authorized(self, header: str | None) -> bool:
         if not header or not header.startswith("Bearer "):
@@ -173,19 +199,27 @@ def make_handler(app: App):
         def log_message(self, fmt, *args):  # quieter than the default stderr spam
             log.debug("%s %s", self.address_string(), fmt % args)
 
-        def _send(self, code: int, payload: dict | bytes, content_type: str = "application/json") -> None:
+        def _send(self, code: int, payload: dict | bytes, content_type: str = "application/json",
+                  cache: str = "no-store") -> None:
             data = payload if isinstance(payload, bytes) else json.dumps(payload).encode()
             self.send_response(code)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(data)))
-            self.send_header("Cache-Control", "no-store")
+            self.send_header("Cache-Control", cache)
             self.end_headers()
             self.wfile.write(data)
 
         def _dispatch(self, method: str) -> None:
-            path = self.path.split("?", 1)[0]
+            path, _, query = self.path.partition("?")
             if method == "GET" and path in ("/", "/index.html"):
                 return self._send(200, page, "text/html; charset=utf-8")
+            if method == "GET" and path.startswith("/covers/"):
+                params = {k: v[-1] for k, v in urllib.parse.parse_qs(query).items()}
+                found = app.shelf_cover(path, params)
+                if found is None:
+                    return self._send(404, {"error": "Not found"})
+                # The link changes with the image, so it can be kept for good.
+                return self._send(200, found[0], found[1], cache="public, max-age=31536000, immutable")
             if not path.startswith("/api/"):
                 return self._send(404, {"error": "Not found"})
             if not app.authorized(self.headers.get("Authorization")):
@@ -193,7 +227,8 @@ def make_handler(app: App):
             body = None
             if method in ("POST", "PUT"):
                 length = int(self.headers.get("Content-Length") or 0)
-                if length > MAX_BODY:
+                limit = shelves.MAX_COVER if path.endswith("/cover") else MAX_BODY
+                if length > limit:
                     return self._send(413, {"error": "Request too large"})
                 body = self.rfile.read(length) if length else b""
             code, payload = app.handle(method, path, body)
