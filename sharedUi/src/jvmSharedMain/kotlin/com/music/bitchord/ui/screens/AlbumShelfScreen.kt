@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.music.bitchord.data.companion.AlbumShelf
 import com.music.bitchord.data.model.ShelfItem
@@ -117,6 +118,13 @@ private fun ShelfHeader(
     onEdit: () -> Unit,
 ) {
     Column(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 4.dp)) {
+        Text(
+            text = shelf.name,
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        Spacer(Modifier.height(8.dp))
         if (shelf.description.isNotBlank()) {
             Text(
                 text = shelf.description,
