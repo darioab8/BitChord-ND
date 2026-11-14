@@ -31,6 +31,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import coil3.compose.AsyncImage
+import com.music.bitchord.ui.components.thumbnailBorder
 import androidx.compose.ui.unit.dp
 import com.music.bitchord.data.companion.AlbumShelf
 import com.music.bitchord.data.model.ShelfItem
@@ -42,7 +51,7 @@ import com.music.bitchord.ui.components.libraryGrid
 import com.music.bitchord.ui.icons.BitChordIcons
 
 /**
- * BitChord ND: a shelf's own page — its description and count, Play and
+ * BitChord ND: a shelf's own page — its cover, name, description and count, Play and
  * Shuffle, then its albums as the same grid of cards a Library "Show all"
  * opens onto. Each card opens its album, wherever that album lives.
  *
@@ -88,6 +97,8 @@ fun AlbumShelfScreen(
             item(key = "header", span = { GridItemSpan(maxLineSpan) }) {
                 ShelfHeader(
                     shelf = shelf,
+                    // As big as an album page's sleeve.
+                    coverSize = (maxWidth * 0.76f).coerceAtMost(maxHeight * 0.5f),
                     onPlay = onPlay.takeIf { cards.isNotEmpty() },
                     onShuffle = onShuffle.takeIf { cards.isNotEmpty() },
                     onEdit = onEdit,
@@ -113,27 +124,48 @@ fun AlbumShelfScreen(
 @Composable
 private fun ShelfHeader(
     shelf: AlbumShelf,
+    coverSize: Dp,
     onPlay: (() -> Unit)?,
     onShuffle: (() -> Unit)?,
     onEdit: () -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 4.dp)) {
+    Column(
+        Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        val sleeve = RoundedCornerShape(12.dp)
+        val count = shelf.albums.size
+        // The detail page carries every album, so the grid can use them all,
+        // not just the list's first few.
+        val artwork = remember(shelf) {
+            AlbumShelves.artwork(shelf.copy(preview = shelf.albums.take(4).ifEmpty { shelf.preview }), 900)
+        }
+        ShelfArtworkView(
+            artwork = artwork,
+            modifier = Modifier
+                .size(coverSize)
+                .shadow(18.dp, sleeve)
+                .clip(sleeve)
+                .thumbnailBorder(sleeve),
+        )
+        Spacer(Modifier.height(20.dp))
         Text(
             text = shelf.name,
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(8.dp))
         if (shelf.description.isNotBlank()) {
+            Spacer(Modifier.height(8.dp))
             Text(
                 text = shelf.description,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
             )
-            Spacer(Modifier.height(6.dp))
         }
-        val count = shelf.albums.size
+        Spacer(Modifier.height(6.dp))
         Text(
             text = if (count == 1) "1 album" else "$count albums",
             style = MaterialTheme.typography.bodyMedium,
@@ -141,6 +173,7 @@ private fun ShelfHeader(
         )
         Spacer(Modifier.height(16.dp))
         Row(
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -179,5 +212,38 @@ private fun HeaderPill(
             Spacer(Modifier.width(8.dp))
         }
         Text(label, style = MaterialTheme.typography.titleMedium, color = content, maxLines = 1)
+    }
+}
+
+/**
+ * A shelf's picture, as on its cards: its own cover, its one album's, or a
+ * 2×2 grid of its albums'.
+ */
+@Composable
+fun ShelfArtworkView(artwork: AlbumShelves.Artwork, modifier: Modifier = Modifier) {
+    Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant)) {
+        if (artwork.collage.size >= 4) {
+            Column(Modifier.fillMaxSize()) {
+                artwork.collage.take(4).chunked(2).forEach { pair ->
+                    Row(Modifier.fillMaxWidth().weight(1f)) {
+                        pair.forEach { url ->
+                            AsyncImage(
+                                model = url,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.weight(1f).fillMaxHeight(),
+                            )
+                        }
+                    }
+                }
+            }
+        } else if (artwork.single != null) {
+            AsyncImage(
+                model = artwork.single,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 }

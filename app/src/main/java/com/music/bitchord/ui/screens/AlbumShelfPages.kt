@@ -87,39 +87,6 @@ data class ShelfEdit(
 )
 
 /**
- * A shelf's picture, as on its cards: its own cover, its one album's, or a
- * 2×2 grid of its albums'.
- */
-@Composable
-fun ShelfArtworkView(artwork: AlbumShelves.Artwork, modifier: Modifier = Modifier) {
-    Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant)) {
-        if (artwork.collage.size >= 4) {
-            Column(Modifier.fillMaxSize()) {
-                artwork.collage.take(4).chunked(2).forEach { pair ->
-                    Row(Modifier.fillMaxWidth().weight(1f)) {
-                        pair.forEach { url ->
-                            AsyncImage(
-                                model = url,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.weight(1f).fillMaxHeight(),
-                            )
-                        }
-                    }
-                }
-            }
-        } else if (artwork.single != null) {
-            AsyncImage(
-                model = artwork.single,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
-    }
-}
-
-/**
  * A picked image made ready to upload: the centre square, at most
  * [COVER_EDGE] pixels a side, as a JPEG. Null when it can't be read.
  */
