@@ -181,6 +181,18 @@ object QueueShuffle {
     }
 
     /**
+     * BitChord ND: turns shuffle off for the queue about to be started — the
+     * Play button on an album, playlist or shelf means "from the top, in
+     * order", whatever shuffle was left on by the queue before.
+     */
+    fun disableForNextQueue() {
+        original = emptyList()
+        clearCanonicalContext()
+        _enabled.value = false
+        AppSettings.setShuffleEnabled(false)
+    }
+
+    /**
      * The order a queue should go in when it is started while shuffle is on:
      * the track the user picked leads, the rest follow at random. The order it
      * arrived in is remembered, so turning shuffle off restores it.
